@@ -12,7 +12,7 @@ If a `local-notes/` folder exists, read `local-notes/README.md` before starting 
 
 - `src/engine/` — the calculations. Pure: no I/O, no clock, no database. Test-first.
 - `src/import/` — parsers for the spreadsheet format and broker exports. Pure.
-- `src/market/` — price and fund-holdings providers and their caches.
+- `src/market/` — price, fund-holdings and sector providers and their caches.
 - `src/db/` — SQLite schema, migrations and queries. The database lives in `data/`, which is git-ignored.
 - `src/server/` — the API. `client/` — the React app.
 - `tests/` — mirrors `src/`. `tests/fixtures/` holds recorded public market data and an invented sample portfolio.

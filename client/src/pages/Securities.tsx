@@ -20,7 +20,7 @@ export default function Securities() {
   return (
     <div>
       <PageTitle title="Securities" aside={<Link to="/health" className="text-[13px] font-medium text-accent hover:underline">Data health</Link>}>
-        Name, sector and asset type for each ticker you have traded. Sectors drive the allocation on Overview; ETFs are always their own group.
+        Name, sector and asset type for each ticker you have traded. Sectors drive the allocation on Overview; ETFs are always their own group. Blank sectors and names are looked up automatically; what you type here is kept.
       </PageTitle>
       <datalist id="sectors">
         {sectors.map((s) => (

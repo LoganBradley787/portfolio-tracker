@@ -5,6 +5,7 @@ export function securityRoutes(ctx: AppContext) {
   const r = new Hono();
 
   r.get('/', (c) => {
+    ctx.sectors.maybeRefresh();
     const traded = new Set(ctx.q.listTransactions().map((t) => t.ticker));
     return c.json({ securities: ctx.q.listSecurities().map((s) => ({ ...s, traded: traded.has(s.ticker) })) });
   });

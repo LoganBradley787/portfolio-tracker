@@ -19,6 +19,7 @@ const ctx = createContext({
       new URL(`../tests/fixtures/vanguard/${ticker.toLowerCase()}-holdings.json`, import.meta.url), 'utf8',
     ))),
   },
+  profileProvider: { profile: async () => null },
   now: () => new Date('2026-10-02T16:30:00.000Z'),
 });
 const app = createApp(ctx);

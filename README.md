@@ -2,7 +2,7 @@
 
 A local, single-user replacement for the Google Sheets stock tracker. It keeps your transactions in a SQLite file, fetches prices and splits from Tiingo, and shows holdings, realized gains, true daily history, returns and allocation at `http://127.0.0.1:3000`.
 
-Outbound requests send ticker symbols and date ranges to Tiingo, and public fund identifiers to Vanguard for ETF holdings. Portfolio amounts, share counts, and exposure calculations stay on your machine.
+Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and the ticker of each stock without a sector to Yahoo Finance. Portfolio amounts, share counts, and exposure calculations stay on your machine.
 
 ## Run it
 
@@ -21,6 +21,10 @@ npm start          # builds the client the first time, then serves http://127.0.
 - **Commit guard.** `npm install` points git at the hooks in `.githooks/`. Before each commit they refuse `.env` files, anything in `local-notes/` or `data/`, databases and spreadsheets, any value from your `.env`, and any word listed in `local-notes/blocked-words.txt` (one per line; optional). `npx tsx scripts/commit-guard.ts --all` checks the whole tree.
 - After pulling new code, delete `dist/` (or run `npm run build`) so `npm start` rebuilds the client.
 - `npx tsx scripts/demo-server.ts` runs the app on port 3001 against the recorded Tiingo fixtures with the clock frozen at 2026-10-02. It is useful for trying the UI without spending API requests.
+
+### Sectors
+
+Sectors and company names for stocks are looked up from Yahoo Finance in the background, one ticker at a time, whenever a traded stock has no sector. Only blank fields are filled; anything you type on **Securities** is kept. A ticker Yahoo does not know (a delisted company, for instance) stays unassigned and is tried again the next time the server starts. Yahoo's endpoint is unofficial, so if it stops answering, set sectors by hand.
 
 ### Prices and the rate limit
 

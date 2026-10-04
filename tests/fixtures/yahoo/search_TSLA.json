@@ -1,0 +1,46 @@
+{
+  "count": 5,
+  "quotes": [
+    {
+      "exchange": "NMS",
+      "shortname": "Tesla, Inc.",
+      "quoteType": "EQUITY",
+      "symbol": "TSLA",
+      "index": "quotes",
+      "score": 81921504.0,
+      "typeDisp": "Equity",
+      "longname": "Tesla, Inc.",
+      "exchDisp": "NASDAQ",
+      "sector": "Consumer Cyclical",
+      "sectorDisp": "Consumer Cyclical",
+      "industry": "Auto Manufacturers",
+      "industryDisp": "Auto Manufacturers",
+      "dispSecIndFlag": true,
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "NGM",
+      "shortname": "Direxion Daily TSLA Bull 2X ETF",
+      "quoteType": "ETF",
+      "symbol": "TSLL",
+      "index": "quotes",
+      "score": 24669.0,
+      "typeDisp": "ETF",
+      "longname": "Direxion Daily TSLA Bull 2X Shares",
+      "exchDisp": "NASDAQ",
+      "isYahooFinance": true
+    },
+    {
+      "exchange": "PCX",
+      "shortname": "YieldMax TSLA Option Income Str",
+      "quoteType": "ETF",
+      "symbol": "TSLY",
+      "index": "quotes",
+      "score": 20687.0,
+      "typeDisp": "ETF",
+      "longname": "YieldMax TSLA Option Income Strategy ETF",
+      "exchDisp": "NYSEArca",
+      "isYahooFinance": true
+    }
+  ]
+}
