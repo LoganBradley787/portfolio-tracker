@@ -1,0 +1,16 @@
+Ticker	Asset Type	Type	Shares	Split (n to 1)	Avg Price	Date	Account
+DIS	Stock	Buy	30		111.46	3/10/2020	Main
+DIS	Stock	Buy	4		106.03	4/14/2020	Main
+DIS	Stock	Buy	2		106.03	4/14/2020	Main
+TSLA	Stock	Buy	6		676.88	3/16/2021	Brokerage
+DIS	Stock	Buy	3		194.24	3/16/2021	Brokerage
+VZ	Stock	Buy	10		56.91	3/23/2021	Brokerage
+AMD	Stock	Buy	8		78.38	3/23/2021	Brokerage
+F	Stock	Buy	40		12.2	4/13/2021	Brokerage
+TSLA	Stock	Sell	2		762.32	4/13/2021	Brokerage
+KO	Stock	Buy	12		56.01	8/24/2021	Main
+UBER	Stock	Buy	15		40.17	8/24/2021	Main
+SHOP	Stock	Buy	3		373.21	6/27/2022	Main
+ZM	Stock	Buy	4		111.87	6/29/2022	Main
+SHOP		Split		10		6/29/2022	
+QQQM	ETF	Buy	7		118.76	7/6/2022	Main

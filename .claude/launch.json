@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tracker-check",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["PORT=3210", "PORTFOLIO_DB=data/claude-check.db", "npm", "start"],
+      "port": 3210
+    },
+    {
+      "name": "tracker",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 3000
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+"Activity Date","Process Date","Settle Date","Instrument","Description","Trans Code","Quantity","Price","Amount"
+"7/9/2026","7/10/2026","7/13/2026","DIS","Walt Disney
+CUSIP: synthetic
+Dividend Reinvestment","Buy","0.125","$80.00","($10.00)"
+"7/9/2026","7/9/2026","7/9/2026","DIS","Cash dividend","CDIV","","","$10.00"
+"7/8/2026","7/9/2026","7/10/2026","DIS","Walt Disney","Sell","1.25","$104.75","$130.91"
+"7/8/2026","7/8/2026","7/9/2026","DIS","Walt Disney","Buy","3","$101.25","($303.75)"
+"6/4/2026","6/4/2026","6/4/2026","","Recurring deposit","REC","","","$500.00"
+"6/3/2026","6/4/2026","6/5/2026","voo","Example ETF, ""synthetic""
+CUSIP: synthetic","Buy","2.75","$1,234.50","($3,394.88)"
+"6/2/2026","6/2/2026","6/2/2026","","Stock lending payment","SLIP","","","$0.03"
+"6/1/2026","6/1/2026","6/1/2026","","Transfer","DCF","","","($20.00)"
+"5/29/2026","5/29/2026","6/1/2026","DIS","Example call option","BTO","1","$2.00","($200.00)"
+""
+"","","","","","","","","","This report is a synthetic fixture, not real account data."

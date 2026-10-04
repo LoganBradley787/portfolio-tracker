@@ -1,0 +1,50 @@
+const MINUS = '−';
+
+const money2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money4 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const sharesFmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 });
+const pctFmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function sign(n: number, s: string, signed: boolean): string {
+  if (n < 0 && Math.abs(n) >= 0.005) return MINUS + s;
+  return signed && n > 0 && Math.abs(n) >= 0.005 ? '+' + s : s;
+}
+
+/** $1,234.56 (or −$1,234.56; +$… when signed). */
+export function money(n: number | null | undefined, opts: { signed?: boolean; precise?: boolean } = {}): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  const f = opts.precise ? money4 : money2;
+  return sign(n, '$' + f.format(Math.abs(n)), !!opts.signed);
+}
+
+export function pct(n: number | null | undefined, opts: { signed?: boolean } = {}): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  const v = n * 100;
+  if (Math.abs(v) < 0.005) return '0.00%';
+  return sign(v, pctFmt.format(Math.abs(v)) + '%', opts.signed ?? true);
+}
+
+export function shares(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  return sharesFmt.format(n);
+}
+
+export function tone(n: number | null | undefined): string {
+  if (n == null || Math.abs(n) < 0.005) return 'text-muted';
+  return n > 0 ? 'text-gain' : 'text-loss';
+}
+
+const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const timeFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+/** ISO date → "Oct 2, 2026". */
+export function date(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  return dateFmt.format(new Date(iso.slice(0, 10) + 'T00:00:00Z'));
+}
+
+/** ISO date or timestamp → "Oct 2, 2026" or "Oct 2, 12:27 PM". */
+export function when(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  return iso.length <= 10 ? date(iso) : timeFmt.format(new Date(iso));
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+data/
+*.xlsx
+.DS_Store
+.env
+.env.local
+
+# Private notes, plans and real broker exports: never commit
+local-notes/

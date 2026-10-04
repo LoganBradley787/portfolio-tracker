@@ -1,0 +1,383 @@
+{
+ "_comment": "Reference values for the made-up sample, written by make-reference.py with the spreadsheet rules (average cost pooled per ticker). Only the Split row in the sample is known here (SHOP 10-for-1, 2022-06-29); TSLA's 2022-08-25 3-for-1 is not. Use splits=[SHOP 10:1 2022-06-29] to reproduce these.",
+ "splitsKnownToSheet": [
+  {
+   "ticker": "SHOP",
+   "exDate": "2022-06-29",
+   "ratio": 10
+  }
+ ],
+ "holdings": {
+  "DIS": {
+   "assetType": "Stock",
+   "shares": 39,
+   "totalBought": 39,
+   "totalCost": 4562.7,
+   "avgCost": 116.99230769230769
+  },
+  "TSLA": {
+   "assetType": "Stock",
+   "shares": 4,
+   "totalBought": 6,
+   "totalCost": 2707.52,
+   "avgCost": 676.8799999999999
+  },
+  "VZ": {
+   "assetType": "Stock",
+   "shares": 10,
+   "totalBought": 10,
+   "totalCost": 569.1,
+   "avgCost": 56.90999999999999
+  },
+  "AMD": {
+   "assetType": "Stock",
+   "shares": 8,
+   "totalBought": 8,
+   "totalCost": 627.04,
+   "avgCost": 78.38
+  },
+  "F": {
+   "assetType": "Stock",
+   "shares": 40,
+   "totalBought": 40,
+   "totalCost": 488.0,
+   "avgCost": 12.2
+  },
+  "KO": {
+   "assetType": "Stock",
+   "shares": 12,
+   "totalBought": 12,
+   "totalCost": 672.12,
+   "avgCost": 56.01
+  },
+  "UBER": {
+   "assetType": "Stock",
+   "shares": 15,
+   "totalBought": 15,
+   "totalCost": 602.55,
+   "avgCost": 40.17
+  },
+  "SHOP": {
+   "assetType": "Stock",
+   "shares": 30,
+   "totalBought": 30,
+   "totalCost": 1119.63,
+   "avgCost": 37.321
+  },
+  "ZM": {
+   "assetType": "Stock",
+   "shares": 4,
+   "totalBought": 4,
+   "totalCost": 447.48,
+   "avgCost": 111.87
+  },
+  "QQQM": {
+   "assetType": "ETF",
+   "shares": 7,
+   "totalBought": 7,
+   "totalCost": 831.32,
+   "avgCost": 118.76
+  }
+ },
+ "realized": [
+  {
+   "ticker": "TSLA",
+   "date": "2021-04-13",
+   "account": "Brokerage",
+   "sharesSold": 2.0,
+   "sellPrice": 762.32,
+   "proceeds": 1524.64,
+   "costRemoved": 1353.76,
+   "gain": 170.8800000000001,
+   "gainPerShare": 85.44000000000005,
+   "gainPct": 0.1262262143954616,
+   "avgBuyPrice": 676.88
+  }
+ ],
+ "runningByTransaction": [
+  {
+   "ticker": "DIS",
+   "type": "Buy",
+   "date": "2020-03-10",
+   "splitAdjustedShares": 30,
+   "runningShares": 30,
+   "runningCost": 3343.8
+  },
+  {
+   "ticker": "DIS",
+   "type": "Buy",
+   "date": "2020-04-14",
+   "splitAdjustedShares": 4,
+   "runningShares": 34,
+   "runningCost": 3767.92
+  },
+  {
+   "ticker": "DIS",
+   "type": "Buy",
+   "date": "2020-04-14",
+   "splitAdjustedShares": 2,
+   "runningShares": 36,
+   "runningCost": 3979.98
+  },
+  {
+   "ticker": "TSLA",
+   "type": "Buy",
+   "date": "2021-03-16",
+   "splitAdjustedShares": 6,
+   "runningShares": 6,
+   "runningCost": 4061.28
+  },
+  {
+   "ticker": "DIS",
+   "type": "Buy",
+   "date": "2021-03-16",
+   "splitAdjustedShares": 3,
+   "runningShares": 39,
+   "runningCost": 4562.7
+  },
+  {
+   "ticker": "VZ",
+   "type": "Buy",
+   "date": "2021-03-23",
+   "splitAdjustedShares": 10,
+   "runningShares": 10,
+   "runningCost": 569.1
+  },
+  {
+   "ticker": "AMD",
+   "type": "Buy",
+   "date": "2021-03-23",
+   "splitAdjustedShares": 8,
+   "runningShares": 8,
+   "runningCost": 627.04
+  },
+  {
+   "ticker": "F",
+   "type": "Buy",
+   "date": "2021-04-13",
+   "splitAdjustedShares": 40,
+   "runningShares": 40,
+   "runningCost": 488.0
+  },
+  {
+   "ticker": "TSLA",
+   "type": "Sell",
+   "date": "2021-04-13",
+   "splitAdjustedShares": 2,
+   "runningShares": 4,
+   "runningCost": 2707.52
+  },
+  {
+   "ticker": "KO",
+   "type": "Buy",
+   "date": "2021-08-24",
+   "splitAdjustedShares": 12,
+   "runningShares": 12,
+   "runningCost": 672.12
+  },
+  {
+   "ticker": "UBER",
+   "type": "Buy",
+   "date": "2021-08-24",
+   "splitAdjustedShares": 15,
+   "runningShares": 15,
+   "runningCost": 602.55
+  },
+  {
+   "ticker": "SHOP",
+   "type": "Buy",
+   "date": "2022-06-27",
+   "splitAdjustedShares": 30,
+   "runningShares": 30,
+   "runningCost": 1119.63
+  },
+  {
+   "ticker": "ZM",
+   "type": "Buy",
+   "date": "2022-06-29",
+   "splitAdjustedShares": 4,
+   "runningShares": 4,
+   "runningCost": 447.48
+  },
+  {
+   "ticker": "SHOP",
+   "type": "Split",
+   "date": "2022-06-29",
+   "splitAdjustedShares": 0,
+   "runningShares": null,
+   "runningCost": null
+  },
+  {
+   "ticker": "QQQM",
+   "type": "Buy",
+   "date": "2022-07-06",
+   "splitAdjustedShares": 7,
+   "runningShares": 7,
+   "runningCost": 831.32
+  }
+ ],
+ "totals": {
+  "totalCost": 12627.46,
+  "totalRealizedGain": 170.88
+ },
+ "benchmarkSheetCompatible": {
+  "rows": [
+   {
+    "type": "Buy",
+    "shares": 30,
+    "price": 111.46,
+    "date": "2020-03-10",
+    "indexClose": 288.42,
+    "indexUnits": 11.593509465363011,
+    "runningUnits": 11.593509465363011,
+    "runningCost": 3343.7999999999997,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 4,
+    "price": 106.03,
+    "date": "2020-04-14",
+    "indexClose": 283.79,
+    "indexUnits": 1.4944853588921385,
+    "runningUnits": 13.08799482425515,
+    "runningCost": 3767.9199999999996,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 2,
+    "price": 106.03,
+    "date": "2020-04-14",
+    "indexClose": 283.79,
+    "indexUnits": 0.7472426794460693,
+    "runningUnits": 13.835237503701219,
+    "runningCost": 3979.9799999999996,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 6,
+    "price": 676.88,
+    "date": "2021-03-16",
+    "indexClose": 395.91,
+    "indexUnits": 10.258088959612031,
+    "runningUnits": 24.09332646331325,
+    "runningCost": 8041.259999999999,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 3,
+    "price": 194.24,
+    "date": "2021-03-16",
+    "indexClose": 395.91,
+    "indexUnits": 1.471849662802152,
+    "runningUnits": 25.565176126115404,
+    "runningCost": 8623.98,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 10,
+    "price": 56.91,
+    "date": "2021-03-23",
+    "indexClose": 389.5,
+    "indexUnits": 1.461103979460847,
+    "runningUnits": 27.02628010557625,
+    "runningCost": 9193.08,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 8,
+    "price": 78.38,
+    "date": "2021-03-23",
+    "indexClose": 389.5,
+    "indexUnits": 1.6098587933247752,
+    "runningUnits": 28.636138898901027,
+    "runningCost": 9820.119999999999,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 40,
+    "price": 12.2,
+    "date": "2021-04-13",
+    "indexClose": 412.86,
+    "indexUnits": 1.1819987404931454,
+    "runningUnits": 29.818137639394173,
+    "runningCost": 10308.119999999999,
+    "costRemoved": null
+   },
+   {
+    "type": "Sell",
+    "shares": 2,
+    "price": 762.32,
+    "date": "2021-04-13",
+    "indexClose": 412.86,
+    "indexUnits": 3.6928740977571093,
+    "runningUnits": 26.125263541637064,
+    "runningCost": 9031.494685403542,
+    "costRemoved": 1276.6253145964558
+   },
+   {
+    "type": "Buy",
+    "shares": 12,
+    "price": 56.01,
+    "date": "2021-08-24",
+    "indexClose": 447.97,
+    "indexUnits": 1.5003683282362656,
+    "runningUnits": 27.62563186987333,
+    "runningCost": 9703.614685403543,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 15,
+    "price": 40.17,
+    "date": "2021-08-24",
+    "indexClose": 447.97,
+    "indexUnits": 1.3450677500725496,
+    "runningUnits": 28.97069961994588,
+    "runningCost": 10306.164685403543,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 3,
+    "price": 373.21,
+    "date": "2022-06-27",
+    "indexClose": 388.59,
+    "indexUnits": 2.8812630278699913,
+    "runningUnits": 31.85196264781587,
+    "runningCost": 11425.794685403542,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 4,
+    "price": 111.87,
+    "date": "2022-06-29",
+    "indexClose": 380.34,
+    "indexUnits": 1.176526265972551,
+    "runningUnits": 33.02848891378842,
+    "runningCost": 11873.274685403541,
+    "costRemoved": null
+   },
+   {
+    "type": "Buy",
+    "shares": 7,
+    "price": 118.76,
+    "date": "2022-07-06",
+    "indexClose": 383.25,
+    "indexUnits": 2.1691324200913242,
+    "runningUnits": 35.197621333879745,
+    "runningCost": 12704.594685403541,
+    "costRemoved": null
+   }
+  ],
+  "realizedGain": 248.01468540354426,
+  "unitsSold": 3.6928740977571093
+ }
+}

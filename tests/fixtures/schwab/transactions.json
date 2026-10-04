@@ -1,0 +1,16 @@
+{
+  "FromDate": "01/15/2026",
+  "ToDate": "10/03/2026",
+  "TotalTransactionsAmount": "$0.00",
+  "TotalFeesAndCommAmount": "$0.00",
+  "BrokerageTransactions": [
+    { "Date": "09/22/2026", "Action": "Reinvest Shares", "Symbol": "VT", "Description": "VANGUARD TOTAL WORLD STOCK INDEX FUND ETF SHARES", "Quantity": "0.25", "Price": "$160.00", "Fees & Comm": "", "Amount": "-$40.00", "AcctgRuleCd": "1" },
+    { "Date": "09/22/2026", "Action": "Reinvest Dividend", "Symbol": "VT", "Description": "VANGUARD TOTAL WORLD STOCK INDEX FUND ETF SHARES", "Quantity": "", "Price": "", "Fees & Comm": "", "Amount": "$40.00", "AcctgRuleCd": "1" },
+    { "Date": "08/11/2026 as of 08/10/2026", "Action": "Sell", "Symbol": "DIS", "Description": "WALT DISNEY CO", "Quantity": "2", "Price": "$1,105.50", "Fees & Comm": "$0.02", "Amount": "$2,210.98", "AcctgRuleCd": "1" },
+    { "Date": "08/07/2026 as of 08/06/2026", "Action": "MoneyLink Transfer", "Symbol": "", "Description": "Tfr EXAMPLE BANK, A PERSON", "Quantity": "", "Price": "", "Fees & Comm": "", "Amount": "$1,500.00", "AcctgRuleCd": "1" },
+    { "Date": "08/06/2026", "Action": "Buy", "Symbol": "VT", "Description": "VANGUARD TOTAL WORLD STOCK INDEX FUND ETF SHARES", "Quantity": "9.5", "Price": "$160.615", "Fees & Comm": "", "Amount": "-$1,525.84", "AcctgRuleCd": "1" },
+    { "Date": "03/02/2026", "Action": "Buy", "Symbol": "DIS", "Description": "WALT DISNEY CO", "Quantity": "5", "Price": "$98.25", "Fees & Comm": "", "Amount": "-$491.25", "AcctgRuleCd": "1" },
+    { "Date": "03/02/2026", "Action": "Buy to Open", "Symbol": "DIS 06/19/2026 100.00 C", "Description": "CALL WALT DISNEY CO", "Quantity": "1", "Price": "$4.10", "Fees & Comm": "$0.66", "Amount": "-$410.66", "AcctgRuleCd": "1" },
+    { "Date": "01/15/2026", "Action": "Buy", "Symbol": "VT", "Description": "VANGUARD TOTAL WORLD STOCK INDEX FUND ETF SHARES", "Quantity": "", "Price": "$150.00", "Fees & Comm": "", "Amount": "-$300.00", "AcctgRuleCd": "1" }
+  ]
+}

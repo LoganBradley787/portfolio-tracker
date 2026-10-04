@@ -1,0 +1,3 @@
+#!/bin/sh
+# Blocks private files, private words and secrets. See scripts/commit-guard.ts.
+exec node_modules/.bin/tsx scripts/commit-guard.ts

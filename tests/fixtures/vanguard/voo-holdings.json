@@ -1,0 +1,237 @@
+{
+  "latestEffectiveDate": "2026-08-31",
+  "2026-08-31": {
+    "equity": [
+      {
+        "holdingName": "NVIDIA Corp",
+        "ticker": "NVDA",
+        "percentOfFunds": 8.07623,
+        "sector": "Semiconductors",
+        "marketValue": 142057740469.4,
+        "quantity": 643435730,
+        "cusip": "67066G104",
+        "sedol": "2379504",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Apple Inc",
+        "ticker": "AAPL",
+        "percentOfFunds": 7.02889,
+        "sector": "Technology Hardware, Storage & Peripherals",
+        "marketValue": 123635525562.65,
+        "quantity": 390202069,
+        "cusip": "037833100",
+        "sedol": "2046251",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Microsoft Corp",
+        "ticker": "MSFT",
+        "percentOfFunds": 5.69171,
+        "sector": "Systems Software",
+        "marketValue": 100114887835.62,
+        "quantity": 197352378,
+        "cusip": "594918104",
+        "sedol": "2588173",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Amazon.com Inc",
+        "ticker": "AMZN",
+        "percentOfFunds": 3.84082,
+        "sector": "Broadline Retail",
+        "marketValue": 67558500017.19,
+        "quantity": 260070447,
+        "cusip": "023135106",
+        "sedol": "2000019",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Alphabet Inc",
+        "ticker": "GOOGL",
+        "percentOfFunds": 3.00539,
+        "sector": "Interactive Media & Services",
+        "marketValue": 52863696971.25,
+        "quantity": 155779275,
+        "cusip": "02079K305",
+        "sedol": "BYVY8G0",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Broadcom Inc",
+        "ticker": "AVGO",
+        "percentOfFunds": 2.64835,
+        "sector": "Semiconductors",
+        "marketValue": 46583476878.68,
+        "quantity": 125785702,
+        "cusip": "11135F101",
+        "sedol": "BDZ78H9",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Alphabet Inc",
+        "ticker": "GOOG",
+        "percentOfFunds": 2.39439,
+        "sector": "Interactive Media & Services",
+        "marketValue": 42116332548.97,
+        "quantity": 125566717,
+        "cusip": "02079K107",
+        "sedol": "BYY88Y7",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Meta Platforms Inc",
+        "ticker": "META",
+        "percentOfFunds": 1.89848,
+        "sector": "Interactive Media & Services",
+        "marketValue": 33393587667.78,
+        "quantity": 58345717,
+        "cusip": "30303M102",
+        "sedol": "B7TL820",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Micron Technology Inc",
+        "ticker": "MU",
+        "percentOfFunds": 1.63311,
+        "sector": "Semiconductors",
+        "marketValue": 28725852710.73,
+        "quantity": 29962401,
+        "cusip": "595112103",
+        "sedol": "2588184",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Tesla Inc",
+        "ticker": "TSLA",
+        "percentOfFunds": 1.56461,
+        "sector": "Automobile Manufacturers",
+        "marketValue": 27520846006.5,
+        "quantity": 74795070,
+        "cusip": "88160R101",
+        "sedol": "B616C79",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Berkshire Hathaway Inc",
+        "ticker": "BRK/B",
+        "percentOfFunds": 1.39568,
+        "sector": "Multi-Sector Holdings",
+        "marketValue": 24549402114.96,
+        "quantity": 48706232,
+        "cusip": "084670702",
+        "sedol": "2073390",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Sempra",
+        "ticker": "SRE",
+        "percentOfFunds": 0.08066,
+        "sector": "Multi-Utilities",
+        "marketValue": 1418738228.9,
+        "quantity": 17365217,
+        "cusip": "816851109",
+        "sedol": "2138158",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "Brown-Forman Corp",
+        "ticker": "BF/B",
+        "percentOfFunds": 0.00675,
+        "sector": "Distillers & Vintners",
+        "marketValue": 118811873.35,
+        "quantity": 4471655,
+        "cusip": "115637209",
+        "sedol": "2146838",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "HOLOGIC INC - CVR (APRIL 2026)",
+        "ticker": "",
+        "percentOfFunds": "",
+        "sector": "Health Care Equipment",
+        "marketValue": 56982.28,
+        "quantity": 5698228,
+        "cusip": "436CVR021",
+        "sedol": "9026319",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      },
+      {
+        "holdingName": "ABIOMED INC-CVR",
+        "ticker": "2223637D",
+        "percentOfFunds": "",
+        "sector": "Health Care Equipment",
+        "marketValue": 183.6,
+        "quantity": 180,
+        "cusip": "003CVR016",
+        "sedol": "BQBG6P5",
+        "country": "US",
+        "securityDepositoryReceiptType": ""
+      }
+    ],
+    "shortTermReserves": [
+      {
+        "holdingName": "MKTLIQ",
+        "ticker": "",
+        "percentOfFunds": 0.04555,
+        "marketValue": 801220238.16,
+        "quantity": 801300368.2,
+        "cusip": "CMT001142",
+        "sedol": "",
+        "finalMaturityDate": "2049-12-31",
+        "portId": "9952"
+      },
+      {
+        "holdingName": "US Dollar",
+        "ticker": "USD",
+        "percentOfFunds": 0.02637,
+        "marketValue": 463779799.94,
+        "quantity": 463779799.94,
+        "cusip": "",
+        "sedol": "",
+        "finalMaturityDate": "",
+        "portId": "9952"
+      }
+    ],
+    "shortTermReservesMoneyMarket": [
+      {
+        "issuerName": "NVIDIA Corp",
+        "issuerTitle": "NVIDIA CORP",
+        "couponRate": 0,
+        "investmentCategory": "Electronic Compo-Semicon",
+        "cusip": "67066G104",
+        "sedol": "2379504",
+        "effectiveMaturityDate": "",
+        "finalMaturityDate": "",
+        "principalAmount": 643435730,
+        "amortizedCost": 142057740469.4
+      },
+      {
+        "issuerName": "Apple Inc",
+        "issuerTitle": "APPLE INC",
+        "couponRate": 0,
+        "investmentCategory": "Computers",
+        "cusip": "037833100",
+        "sedol": "2046251",
+        "effectiveMaturityDate": "",
+        "finalMaturityDate": "",
+        "principalAmount": 390202069,
+        "amortizedCost": 123635525562.65
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio</title>
+    <script>
+      // Apply the saved or system theme before first paint.
+      try {
+        var t = localStorage.getItem('theme');
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <!--
+      THESIS: A personal brokerage ledger, not a trading terminal. Refuses the dashboard-of-cards and neon-on-black defaults.
+      OWN-WORLD: Statement paper and ink: neutral grounds, hairline rules, double-ruled totals, tabular figures throughout,
+      one ink-blue accent for actions/selection, green/red only for gain/loss, amber only for data that needs a look.
+      STORY: The owner opens it, sees what the portfolio is worth and how it moved, scans holdings, trusts the numbers because
+      every flag (stale price, unresolved ticker, oversell) is visible where it applies.
+      FIRST VIEWPORT: Top bar (name, five tabs, prices-as-of, Refresh). A one-line statement summary (equity, gain, today,
+      realized), then the holdings ledger at full width with its totals row. Primary action: Refresh, top right.
+      FORM: Operate mode, restrained palette, system type. Concept tournament skipped.
+    -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
