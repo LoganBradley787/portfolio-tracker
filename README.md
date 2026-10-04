@@ -2,7 +2,7 @@
 
 A local, single-user replacement for the Google Sheets stock tracker. It keeps your transactions in a SQLite file, fetches prices and splits from Tiingo, and shows holdings, realized gains, true daily history, returns and allocation at `http://127.0.0.1:3000`.
 
-Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and the ticker of each stock without a sector to Yahoo Finance. Portfolio amounts, share counts, and exposure calculations stay on your machine.
+Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and to Yahoo Finance the ticker of each stock without a sector and of each ETF you hold. Portfolio amounts, share counts, and exposure calculations stay on your machine.
 
 ## Run it
 
@@ -25,6 +25,8 @@ npm start          # builds the client the first time, then serves http://127.0.
 ### Sectors
 
 Sectors and company names for stocks are looked up from Yahoo Finance in the background, one ticker at a time, whenever a traded stock has no sector. Only blank fields are filled; anything you type on **Securities** is kept. A ticker Yahoo does not know (a delisted company, for instance) stays unassigned and is tried again the next time the server starts. Yahoo's endpoint is unofficial, so if it stops answering, set sectors by hand.
+
+Each ETF you hold also gets a sector breakdown from Yahoo, refreshed weekly. The Overview's sector allocation spreads a fund's value across those sectors by default (**Funds: Split into sectors / One group**). Yahoo's sector weights cover only the stock part of a fund, so the rest goes to **Bonds** and **Cash and other**. A failed refresh keeps the last good breakdown; **Data health** lists any held fund whose breakdown is missing, failing or more than four weeks old. A fund with no breakdown stays under **ETFs**.
 
 ### Prices and the rate limit
 
@@ -57,7 +59,7 @@ Keep broker downloads in `local-notes/`, which is git-ignored, or anywhere outsi
 
 ## Pages
 
-- **Overview**: totals, a value chart with a date range, holdings (default: highest gain % first, with gain/loss bars; sortable; All / Stocks / ETFs), allocation by sector, asset type or position. Banners for oversells, failed refreshes and holdings without a live price.
+- **Overview**: totals, a value chart with a date range, holdings (default: highest gain % first, with gain/loss bars; sortable; All / Stocks / ETFs), allocation by sector (funds split into the sectors they hold, or kept as one group), asset type or position. Banners for oversells, failed refreshes and holdings without a live price.
 - **Performance**: time-weighted return against SPY, QQQ and VT (total return, their dividends reinvested), money-weighted return (IRR), volatility, drawdown, what drove the gain, invested vs value, the same money in a benchmark, and each holding's price change over the range. Also includes stocks versus ETFs, monthly returns, each position's dollars ahead or behind matched SPY trades, and selected accounts side by side.
 - **Exposure**: current direct ownership plus estimated underlying equity exposure through held VOO and VT. Sort by company/security, direct dollars, each fund's contribution, or total exposure; search the full holdings universe and expand a name for its breakdown. Percentages use the whole selected portfolio, including unexpanded funds.
 - **Realized**: every sale with totals; **Dividends** lists every dividend received (by ex-date) with totals per year and the shares it bought; **By tax year** (FIFO only) splits short- and long-term gains, with the lots behind them, plus each year's dividends. Not tax advice; wash sales are ignored.

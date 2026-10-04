@@ -132,7 +132,7 @@ export function portfolioView(ctx: AppContext, opts: { assetType?: AssetType; me
     dividends: realized.dividends,
     totalReturn: realized.totalReturn,
     oversells: ledger.oversells,
-    allocation: allocation(holdings, Object.fromEntries(state.securities.map((s) => [s.ticker, s.sector]))),
+    allocation: allocation(holdings, Object.fromEntries(state.securities.map((s) => [s.ticker, s.sector])), ctx.fundSectors.breakdowns()),
     pricesAsOf: asOfs.sort().pop() ?? null,
     flagged: holdings.filter((h) => h.flag).map((h) => ({ ticker: h.ticker, flag: h.flag })),
     transactionCount: state.transactions.length,
@@ -207,6 +207,8 @@ export function healthReport(ctx: AppContext, method: CostMethod = 'average') {
     priceGaps: calendar.length ? Object.entries(state.bars).flatMap(([t, b]) => (t === 'SPY' ? [] : priceGaps(t, b, calendar))) : [],
     priceWarnings: priceSanity(state.transactions, state.bars),
     sheetMirror: mirrorCheck(state),
+    /** Held funds whose sector breakdown is missing, failing or more than four weeks old. */
+    fundSectors: ctx.fundSectors.report().filter((f) => f.stale || f.lastError),
     /** Dividends that couldn't be reinvested for want of a close near the ex-date. */
     cashDividends: state.drip.cash.filter((c) => c.reason === 'no close'),
   };

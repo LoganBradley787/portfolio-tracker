@@ -28,6 +28,7 @@ export function portfolioRoutes(ctx: AppContext) {
   r.get('/portfolio', (c) => {
     ctx.cache.maybeRefresh();
     ctx.sectors.maybeRefresh();
+    ctx.fundSectors.maybeRefresh();
     return c.json(portfolioView(ctx, { assetType: assetTypeParam(c.req.query('assetType')), method: methodParam(c.req.query('method')), accounts: accountsParam(c.req.queries('account')) }));
   });
 

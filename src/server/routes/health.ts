@@ -11,6 +11,7 @@ export function healthRoutes(ctx: AppContext) {
   /** Starts a refresh in the background and returns at once. */
   r.post('/refresh', (c) => {
     ctx.fundHoldings.maybeRefresh();
+    ctx.fundSectors.maybeRefresh();
     if (!ctx.hasKey) return c.json({ errors: ['No Tiingo API key configured'], ...refreshInfo(ctx) }, 400);
     void ctx.cache.refresh();
     return c.json(refreshInfo(ctx), 202);

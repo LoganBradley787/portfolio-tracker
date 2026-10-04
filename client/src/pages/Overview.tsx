@@ -310,7 +310,9 @@ type AllocView = 'byPosition' | 'byAssetType' | 'bySector';
 
 function AllocationSection({ allocation }: { allocation: Allocation }) {
   const [view, setView] = usePersistent<AllocView>('allocation', 'bySector');
-  const slices: Slice[] = allocation[view] ?? allocation.bySector;
+  const [funds, setFunds] = usePersistent<'split' | 'whole'>('allocationFunds', 'split');
+  const hasFunds = allocation.bySector.some((s) => s.label === 'ETFs');
+  const slices: Slice[] = view === 'bySector' && funds === 'split' ? allocation.bySectorSplit : allocation[view] ?? allocation.bySector;
   const max = Math.max(...slices.map((s) => s.pct), 1e-9);
   const unassigned = allocation.bySector.find((s) => s.label === 'Unassigned');
   return (
@@ -344,6 +346,25 @@ function AllocationSection({ allocation }: { allocation: Allocation }) {
           </li>
         ))}
       </ul>
+      {view === 'bySector' && hasFunds && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
+          <Segmented<'split' | 'whole'>
+            label="Funds"
+            value={funds}
+            onChange={setFunds}
+            options={[
+              { value: 'split', label: 'Split into sectors' },
+              { value: 'whole', label: 'One group' },
+            ]}
+          />
+          {funds === 'split' && (
+            <span>
+              Each fund’s value is spread across the sectors, bonds and cash it holds. Counts are holdings with money in the sector.
+              {allocation.bySectorSplit.some((x) => x.label === 'ETFs') && ' Funds with no breakdown yet stay under ETFs.'}
+            </span>
+          )}
+        </div>
+      )}
       {view === 'bySector' && unassigned && (
         <p className="mt-2 text-xs text-muted">
           {unassigned.count} stock{unassigned.count > 1 ? 's have' : ' has'} no sector.{' '}

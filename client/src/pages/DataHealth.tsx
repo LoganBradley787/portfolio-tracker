@@ -22,6 +22,7 @@ interface HealthResponse {
   priceGaps: PriceGap[];
   priceWarnings: PriceWarning[];
   cashDividends: { date: string; ticker: string; account: string; amount: number }[];
+  fundSectors: { ticker: string; lastCheckedAt: string | null; lastError: string | null; stale: boolean }[];
   sheetMirror: { benchmark: string; units: number; cost: number; unitsSold: number; realized: number; unrealized: number; missing: number; negative: boolean } | null;
 }
 
@@ -134,6 +135,36 @@ export default function DataHealth() {
           />
         ) : (
           <AllClear>Every sale is covered by shares held.</AllClear>
+        )}
+      </Section>
+
+      <Section title="Fund sector breakdowns" count={data.fundSectors.length}>
+        {data.fundSectors.length ? (
+          <Table
+            caption="Held funds whose sector breakdown needs attention"
+            rows={data.fundSectors}
+            rowKey={(f) => f.ticker}
+            columns={[
+              { key: 'ticker', label: 'Fund', render: (f) => <span className="font-semibold">{f.ticker}</span> },
+              { key: 'checked', label: 'Last refreshed', render: (f) => <span className="num">{f.lastCheckedAt ? date(f.lastCheckedAt.slice(0, 10)) : 'Never'}</span> },
+              {
+                key: 'note',
+                label: 'What happened',
+                render: (f) => (
+                  <span className="text-muted">
+                    {!f.lastCheckedAt
+                      ? 'No breakdown yet, so the fund shows under ETFs in the sector allocation.'
+                      : f.stale
+                        ? 'Not refreshed in over four weeks. The allocation uses the old breakdown.'
+                        : 'The latest refresh failed. The allocation uses the last good breakdown.'}
+                    {f.lastError && ` ${f.lastError}.`}
+                  </span>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <AllClear>Every held fund has a sector breakdown from the last four weeks.</AllClear>
         )}
       </Section>
 

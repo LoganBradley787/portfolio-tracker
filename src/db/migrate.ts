@@ -21,6 +21,15 @@ const MIGRATIONS: { version: number; sql: () => string }[] = [
       last_error TEXT
     );
   ` },
+  { version: 5, sql: () => `
+    CREATE TABLE fund_sectors (
+      ticker TEXT PRIMARY KEY,
+      breakdown_json TEXT,
+      last_checked_at TEXT,
+      last_attempt_at TEXT NOT NULL,
+      last_error TEXT
+    );
+  ` },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1].version;

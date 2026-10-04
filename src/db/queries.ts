@@ -4,9 +4,18 @@ import type { AssetType, PriceBar, Quote, SecurityStatus, Split, Transaction, Tx
 import type { ImportResult } from '../import/parse.ts';
 import { backupDatabase } from './backup.ts';
 import type { FundSnapshot } from '../engine/exposure.ts';
+import type { FundBreakdown } from '../engine/allocation.ts';
 
 export interface StoredFundHoldings {
   snapshot: FundSnapshot | null;
+  lastCheckedAt: string | null;
+  lastAttemptAt: string;
+  lastError: string | null;
+}
+
+export interface StoredFundSectors {
+  ticker: string;
+  breakdown: FundBreakdown | null;
   lastCheckedAt: string | null;
   lastAttemptAt: string;
   lastError: string | null;
@@ -116,6 +125,30 @@ export class Queries {
 
   recordFundHoldingsFailure(ticker: string, at: string, error: string): void {
     this.db.prepare(`INSERT INTO fund_holdings_cache (ticker, last_attempt_at, last_error)
+      VALUES (?, ?, ?) ON CONFLICT(ticker) DO UPDATE SET
+      last_attempt_at = excluded.last_attempt_at, last_error = excluded.last_error`).run(ticker, at, error);
+  }
+
+  listFundSectors(): StoredFundSectors[] {
+    return (this.db.prepare('SELECT * FROM fund_sectors ORDER BY ticker').all() as Row[]).map((row) => ({
+      ticker: row.ticker,
+      breakdown: row.breakdown_json ? JSON.parse(row.breakdown_json) as FundBreakdown : null,
+      lastCheckedAt: row.last_checked_at,
+      lastAttemptAt: row.last_attempt_at,
+      lastError: row.last_error,
+    }));
+  }
+
+  saveFundSectors(ticker: string, breakdown: FundBreakdown, at: string): void {
+    this.db.prepare(`INSERT INTO fund_sectors (ticker, breakdown_json, last_checked_at, last_attempt_at, last_error)
+      VALUES (?, ?, ?, ?, NULL) ON CONFLICT(ticker) DO UPDATE SET
+      breakdown_json = excluded.breakdown_json, last_checked_at = excluded.last_checked_at,
+      last_attempt_at = excluded.last_attempt_at, last_error = NULL`).run(ticker, JSON.stringify(breakdown), at, at);
+  }
+
+  /** Keeps the last good breakdown; only the attempt and its error are recorded. */
+  recordFundSectorsFailure(ticker: string, at: string, error: string): void {
+    this.db.prepare(`INSERT INTO fund_sectors (ticker, last_attempt_at, last_error)
       VALUES (?, ?, ?) ON CONFLICT(ticker) DO UPDATE SET
       last_attempt_at = excluded.last_attempt_at, last_error = excluded.last_error`).run(ticker, at, error);
   }

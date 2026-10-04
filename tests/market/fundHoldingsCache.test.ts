@@ -166,7 +166,7 @@ describe('fund holdings cache', () => {
     try {
       const path = join(dir, 'portfolio.db');
       const db = openDatabase(path);
-      db.exec('DROP TABLE fund_holdings_cache; DELETE FROM schema_version WHERE version > 3');
+      db.exec('DROP TABLE fund_holdings_cache; DROP TABLE fund_sectors; DELETE FROM schema_version WHERE version > 3');
       const q = new Queries(db);
       q.insertTransaction({ ticker: 'VOO', type: 'Buy', shares: 1, price: 100, date: '2026-01-02', account: 'One' }, 'ETF');
       const trades = q.listTransactions();

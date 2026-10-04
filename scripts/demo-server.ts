@@ -20,6 +20,7 @@ const ctx = createContext({
     ))),
   },
   profileProvider: { profile: async () => null },
+  fundSectorProvider: { fundBreakdown: async () => null },
   now: () => new Date('2026-10-02T16:30:00.000Z'),
 });
 const app = createApp(ctx);
