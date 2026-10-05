@@ -40,7 +40,17 @@ export interface SeriesDef {
   format: (v: number) => string;
 }
 
-export type Row = { date: string; incomplete?: boolean } & Record<string, number | string | boolean | null | undefined>;
+/** `note` is a line of plain text for the tooltip, e.g. the trades made that day. */
+export type Row = { date: string; incomplete?: boolean; note?: string } & Record<string, number | string | boolean | null | undefined>;
+
+export interface Marker {
+  id: number;
+  date: string;
+  price: number;
+  type: 'Buy' | 'Sell' | 'Split';
+}
+
+const MARKER_LETTER = { Buy: 'B', Sell: 'S', Split: '×' };
 
 /**
  * X ticks on calendar boundaries: weeks for a month, months up to ~8 months,
@@ -119,6 +129,7 @@ function ChartTooltip({ active, payload, label, series }: { active?: boolean; pa
           </p>
         );
       })}
+      {row.note && <p className="mt-1 max-w-64 text-muted">{row.note}</p>}
     </div>
   );
 }
@@ -177,6 +188,7 @@ export function LineChartFrame({
   zeroLine,
   label,
   markers = [],
+  letterLimit = Infinity,
 }: {
   rows: Row[];
   series: SeriesDef[];
@@ -184,7 +196,9 @@ export function LineChartFrame({
   height?: number;
   zeroLine?: boolean;
   label: string;
-  markers?: { id: number; date: string; price: number; type: 'Buy' | 'Sell' }[];
+  markers?: Marker[];
+  /** Past this many markers the letters collide, so only the dots are drawn. */
+  letterLimit?: number;
 }) {
   const c = useChartColors();
   const runs = useMemo(() => incompleteRuns(rows), [rows]);
@@ -199,7 +213,7 @@ export function LineChartFrame({
               <ReferenceArea key={a} x1={a} x2={b} fill={c.shade} fillOpacity={0.7} ifOverflow="hidden" />
             ))}
             {zeroLine && <ReferenceLine y={0} stroke={c.axis} strokeWidth={1} />}
-            {markers.map((m) => <ReferenceDot key={m.id} x={m.date} y={m.price} r={4} fill={m.type === 'Buy' ? c.s1 : c.muted} stroke={c.surface} strokeWidth={1.5} ifOverflow="extendDomain" label={{ value: m.type === 'Buy' ? 'B' : 'S', position: 'top', fill: c.text, fontSize: 10 }} />)}
+            {markers.map((m) => <ReferenceDot key={m.id} x={m.date} y={m.price} r={markers.length > letterLimit ? 3 : 4} fill={m.type === 'Buy' ? c.s1 : c.muted} stroke={c.surface} strokeWidth={1.5} ifOverflow="extendDomain" label={markers.length > letterLimit ? undefined : { value: MARKER_LETTER[m.type], position: 'top', fill: c.text, fontSize: 10 }} />)}
             <XAxis
               dataKey="date"
               ticks={x.ticks}
@@ -299,6 +313,72 @@ function DataTable({ rows, series }: { rows: Row[]; series: SeriesDef[] }) {
         </div>
       )}
     </details>
+  );
+}
+
+export interface FanRow {
+  /** X label, e.g. the calendar year. */
+  label: string;
+  low: number;
+  midLow: number;
+  mid: number;
+  midHigh: number;
+  high: number;
+  /** A reference line with no spread, e.g. money put in. */
+  base: number;
+}
+
+/** A widening range around a middle line: the outer band, the inner band, the middle, and a dashed baseline. */
+export function FanChart({ rows, label, yFormat, format, names, target, height = 280 }: {
+  rows: FanRow[];
+  label: string;
+  yFormat: (v: number) => string;
+  format: (v: number) => string;
+  names: { outer: string; inner: string; mid: string; base: string; target?: string };
+  target?: number | null;
+  height?: number;
+}) {
+  const c = useChartColors();
+  const data = rows.map((r) => ({ ...r, outer: [r.low, r.high], inner: [r.midLow, r.midHigh] }));
+  const tip = ({ active, payload }: { active?: boolean; payload?: readonly any[] }) => {
+    if (!active || !payload?.length) return null;
+    const r = payload[0].payload as FanRow;
+    return (
+      <div className="rounded-md border border-rule bg-surface px-3 py-2 text-xs shadow-[0_2px_8px_rgb(0_0_0/0.12)]">
+        <p className="mb-1 text-muted">{r.label}</p>
+        {([[names.outer, `${format(r.low)} – ${format(r.high)}`], [names.inner, `${format(r.midLow)} – ${format(r.midHigh)}`], [names.mid, format(r.mid)], [names.base, format(r.base)]] as const).map(([k, v]) => (
+          <p key={k} className="flex items-baseline justify-between gap-4 py-px">
+            <span className="text-muted">{k}</span>
+            <span className="num font-semibold text-ink">{v}</span>
+          </p>
+        ))}
+      </div>
+    );
+  };
+  return (
+    <figure aria-label={label} className="m-0">
+      <div style={{ height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <CartesianGrid vertical={false} stroke={c.grid} strokeWidth={1} />
+            <XAxis dataKey="label" minTickGap={24} interval="preserveStartEnd" tick={{ fill: c.text, fontSize: 11 }} tickLine={false} axisLine={{ stroke: c.axis }} />
+            <YAxis tickFormatter={yFormat} tick={{ fill: c.text, fontSize: 11 }} tickLine={false} axisLine={false} width={64} domain={[0, 'auto']} />
+            <Tooltip content={tip} cursor={{ stroke: c.axis, strokeWidth: 1 }} isAnimationActive={false} />
+            <Area type="monotone" dataKey="outer" stroke="none" fill={c.s1} fillOpacity={0.12} isAnimationActive={false} activeDot={false} />
+            <Area type="monotone" dataKey="inner" stroke="none" fill={c.s1} fillOpacity={0.2} isAnimationActive={false} activeDot={false} />
+            <Line type="monotone" dataKey="base" stroke={c.muted} strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey="mid" stroke={c.s1} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: c.surface, strokeWidth: 2, fill: c.s1 }} isAnimationActive={false} />
+            {target != null && target > 0 && <ReferenceLine y={target} stroke={c.s2} strokeWidth={1.5} ifOverflow="extendDomain" label={{ value: names.target ?? '', position: 'insideTopLeft', fill: c.text, fontSize: 11 }} />}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <figcaption className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
+        <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block h-0.5 w-4 rounded-full" style={{ background: c.s1 }} />{names.mid}</span>
+        <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block size-2.5 rounded-sm" style={{ background: c.s1, opacity: 0.32 }} />{names.inner}</span>
+        <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block size-2.5 rounded-sm" style={{ background: c.s1, opacity: 0.12 }} />{names.outer}</span>
+        <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block w-4 border-t-[1.5px] border-dashed" style={{ borderColor: c.muted }} />{names.base}</span>
+      </figcaption>
+    </figure>
   );
 }
 

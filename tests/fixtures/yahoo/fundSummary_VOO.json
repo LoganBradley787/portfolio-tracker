@@ -1,0 +1,285 @@
+{
+  "quoteSummary": {
+    "result": [
+      {
+        "fundProfile": {
+          "maxAge": 1,
+          "styleBoxUrl": "https://s.yimg.com/lq/i/fi/3_0stylelargeeq2.gif",
+          "family": "Vanguard",
+          "categoryName": "Large Blend",
+          "legalType": "Exchange Traded Fund",
+          "managementInfo": {
+            "managerName": null,
+            "managerBio": null,
+            "startdate": {}
+          },
+          "feesExpensesInvestment": {
+            "annualReportExpenseRatio": {
+              "raw": 0.00029999999,
+              "fmt": "0.03%"
+            },
+            "frontEndSalesLoad": {},
+            "deferredSalesLoad": {},
+            "twelveBOne": {},
+            "netExpRatio": {},
+            "grossExpRatio": {},
+            "annualHoldingsTurnover": {
+              "raw": 0.02,
+              "fmt": "2.00%"
+            },
+            "totalNetAssets": {
+              "raw": 514320.12,
+              "fmt": "514,320.12"
+            },
+            "projectionValues": {}
+          },
+          "feesExpensesInvestmentCat": {
+            "annualReportExpenseRatio": {
+              "raw": 0.0072176997,
+              "fmt": "0.72%"
+            },
+            "frontEndSalesLoad": {},
+            "deferredSalesLoad": {},
+            "twelveBOne": {},
+            "annualHoldingsTurnover": {
+              "raw": 0.9461,
+              "fmt": "94.61%"
+            },
+            "totalNetAssets": {
+              "raw": 514320.12,
+              "fmt": "514,320.12"
+            },
+            "projectionValuesCat": {}
+          },
+          "initInvestment": {},
+          "initIraInvestment": {},
+          "initAipInvestment": {},
+          "subseqInvestment": {},
+          "subseqIraInvestment": {},
+          "subseqAipInvestment": {},
+          "brokerages": []
+        },
+        "topHoldings": {
+          "maxAge": 1,
+          "cashPosition": {
+            "raw": 0.0007,
+            "fmt": "0.07%"
+          },
+          "stockPosition": {
+            "raw": 0.9987,
+            "fmt": "99.87%"
+          },
+          "bondPosition": {
+            "raw": 0.0,
+            "fmt": "0.00%"
+          },
+          "otherPosition": {
+            "raw": 0.00059999997,
+            "fmt": "0.06%"
+          },
+          "preferredPosition": {
+            "raw": 0.0,
+            "fmt": "0.00%"
+          },
+          "convertiblePosition": {
+            "raw": 0.0,
+            "fmt": "0.00%"
+          },
+          "holdings": [
+            {
+              "symbol": "NVDA",
+              "holdingName": "NVIDIA Corp",
+              "holdingPercent": {
+                "raw": 0.0808197,
+                "fmt": "8.08%"
+              }
+            },
+            {
+              "symbol": "AAPL",
+              "holdingName": "Apple Inc",
+              "holdingPercent": {
+                "raw": 0.0703389,
+                "fmt": "7.03%"
+              }
+            },
+            {
+              "symbol": "MSFT",
+              "holdingName": "Microsoft Corp",
+              "holdingPercent": {
+                "raw": 0.056957502,
+                "fmt": "5.70%"
+              }
+            },
+            {
+              "symbol": "AMZN",
+              "holdingName": "Amazon.com Inc",
+              "holdingPercent": {
+                "raw": 0.0384355,
+                "fmt": "3.84%"
+              }
+            },
+            {
+              "symbol": "GOOGL",
+              "holdingName": "Alphabet Inc Class A",
+              "holdingPercent": {
+                "raw": 0.0300753,
+                "fmt": "3.01%"
+              }
+            },
+            {
+              "symbol": "AVGO",
+              "holdingName": "Broadcom Inc",
+              "holdingPercent": {
+                "raw": 0.0265023,
+                "fmt": "2.65%"
+              }
+            },
+            {
+              "symbol": "GOOG",
+              "holdingName": "Alphabet Inc Class C",
+              "holdingPercent": {
+                "raw": 0.0239609,
+                "fmt": "2.40%"
+              }
+            },
+            {
+              "symbol": "META",
+              "holdingName": "Meta Platforms Inc Class A",
+              "holdingPercent": {
+                "raw": 0.0189983,
+                "fmt": "1.90%"
+              }
+            },
+            {
+              "symbol": "MU",
+              "holdingName": "Micron Technology Inc",
+              "holdingPercent": {
+                "raw": 0.0163428,
+                "fmt": "1.63%"
+              }
+            },
+            {
+              "symbol": "TSLA",
+              "holdingName": "Tesla Inc",
+              "holdingPercent": {
+                "raw": 0.0156572,
+                "fmt": "1.57%"
+              }
+            }
+          ],
+          "equityHoldings": {
+            "priceToEarnings": {
+              "raw": 0.04033,
+              "fmt": "0.04"
+            },
+            "priceToBook": {
+              "raw": 0.18928,
+              "fmt": "0.19"
+            },
+            "priceToSales": {
+              "raw": 0.27319,
+              "fmt": "0.27"
+            },
+            "priceToCashflow": {
+              "raw": 0.0526,
+              "fmt": "0.05"
+            },
+            "medianMarketCap": {},
+            "threeYearEarningsGrowth": {},
+            "priceToEarningsCat": {},
+            "priceToBookCat": {},
+            "priceToSalesCat": {},
+            "priceToCashflowCat": {},
+            "medianMarketCapCat": {},
+            "threeYearEarningsGrowthCat": {}
+          },
+          "bondHoldings": {
+            "maturity": {},
+            "duration": {},
+            "creditQuality": {},
+            "maturityCat": {},
+            "durationCat": {},
+            "creditQualityCat": {}
+          },
+          "bondRatings": [
+            {
+              "us_government": {
+                "raw": 0.0,
+                "fmt": "0.00%"
+              }
+            }
+          ],
+          "sectorWeightings": [
+            {
+              "realestate": {
+                "raw": 0.018,
+                "fmt": "1.80%"
+              }
+            },
+            {
+              "consumer_cyclical": {
+                "raw": 0.093100004,
+                "fmt": "9.31%"
+              }
+            },
+            {
+              "basic_materials": {
+                "raw": 0.0168,
+                "fmt": "1.68%"
+              }
+            },
+            {
+              "consumer_defensive": {
+                "raw": 0.0446,
+                "fmt": "4.46%"
+              }
+            },
+            {
+              "technology": {
+                "raw": 0.3872,
+                "fmt": "38.72%"
+              }
+            },
+            {
+              "communication_services": {
+                "raw": 0.095,
+                "fmt": "9.50%"
+              }
+            },
+            {
+              "financial_services": {
+                "raw": 0.12020001,
+                "fmt": "12.02%"
+              }
+            },
+            {
+              "utilities": {
+                "raw": 0.0199,
+                "fmt": "1.99%"
+              }
+            },
+            {
+              "industrials": {
+                "raw": 0.0775,
+                "fmt": "7.75%"
+              }
+            },
+            {
+              "energy": {
+                "raw": 0.0348,
+                "fmt": "3.48%"
+              }
+            },
+            {
+              "healthcare": {
+                "raw": 0.0929,
+                "fmt": "9.29%"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

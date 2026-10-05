@@ -9,6 +9,7 @@ import { VanguardHoldingsProvider, type FundHoldingsProvider } from '../market/v
 import { SectorFill } from '../market/sectorFill.ts';
 import { FundSectorCache } from '../market/fundSectorCache.ts';
 import { YahooProfileProvider, type FundSectorProvider, type ProfileProvider } from '../market/yahoo.ts';
+import { Inbox } from './inbox.ts';
 
 export interface AppContext {
   q: Queries;
@@ -16,6 +17,8 @@ export interface AppContext {
   fundHoldings: FundHoldingsCache;
   sectors: SectorFill;
   fundSectors: FundSectorCache;
+  /** The drop folder, when one is configured. */
+  inbox: Inbox | null;
   now: () => Date;
   /** Today's date in New York. */
   today: () => string;
@@ -32,6 +35,8 @@ export interface ContextOptions {
   fundSectorProvider?: FundSectorProvider;
   now?: () => Date;
   backupDir?: string;
+  /** Folder watched for broker exports to import. None unless given. */
+  inboxDir?: string;
   /** Start background refreshes on page loads. Off in tests. */
   autoRefresh?: boolean;
 }
@@ -52,15 +57,17 @@ export function createContext(opts: ContextOptions): AppContext {
     sectors.maybeRefresh = () => {};
     fundSectors.maybeRefresh = () => {};
   }
+  const backupDir = opts.backupDir ?? (opts.dbPath === ':memory:' ? undefined : join(opts.dbPath, '..', 'backups'));
   return {
     q,
     cache,
     fundHoldings,
     sectors,
     fundSectors,
+    inbox: opts.inboxDir ? new Inbox({ dir: opts.inboxDir, q, now, backupDir, onImported: () => cache.maybeRefresh() }) : null,
     now,
     today: () => easternDate(now()),
-    backupDir: opts.backupDir ?? (opts.dbPath === ':memory:' ? undefined : join(opts.dbPath, '..', 'backups')),
+    backupDir,
     hasKey: !!provider,
   };
 }

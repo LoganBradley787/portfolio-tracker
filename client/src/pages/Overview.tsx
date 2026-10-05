@@ -5,13 +5,14 @@ import type { Oversell } from '../../../src/engine/costBasis.ts';
 import type { Allocation, Slice } from '../../../src/engine/allocation.ts';
 import { Flag } from '../components/Flag.tsx';
 import { TickerLink } from '../components/TickerLink.tsx';
-import { axisMoney, LineChartFrame, useChartColors } from '../components/charts.tsx';
+import { axisMoney, LineChartFrame, useChartColors, type Marker } from '../components/charts.tsx';
+import { WhatMoved } from '../components/WhatMoved.tsx';
 import { RangeSelector } from '../components/RangeSelector.tsx';
 import { rangeQuery } from '../lib/range.ts';
 import { usePersistent, usePersistentRange } from '../lib/usePersistentRange.ts';
 import { SetupScreen } from '../components/SetupScreen.tsx';
 import { Table, type Column } from '../components/Table.tsx';
-import { Empty, ErrorLine, Notice, Section, Segmented, Skeleton } from '../components/ui.tsx';
+import { Button, Empty, ErrorLine, Notice, Section, Segmented, Skeleton } from '../components/ui.tsx';
 import { money, pct, shares, tone, when } from '../lib/format.ts';
 import { useRefresh, type RefreshInfo } from '../lib/refresh.tsx';
 import { useApi } from '../lib/useApi.ts';
@@ -28,6 +29,7 @@ interface PortfolioResponse {
   pricesAsOf: string | null;
   flagged: { ticker: string; flag: string }[];
   transactionCount: number;
+  inboxWaiting: number;
   refresh: RefreshInfo;
 }
 
@@ -86,6 +88,15 @@ export default function Overview() {
             {err.kind === 'rate-limit' ? '. Tiingo’s free tier allows 50 requests an hour; it will retry later.' : '.'}
           </Notice>
         )}
+        {data.inboxWaiting > 0 && (
+          <Notice
+            tone="warn"
+            title={`${data.inboxWaiting} file${data.inboxWaiting > 1 ? 's' : ''} in the drop folder could not be imported`}
+            action={<Link to="/health" className="shrink-0 text-[13px] font-medium text-accent hover:underline">Data health</Link>}
+          >
+            Nothing was added from {data.inboxWaiting > 1 ? 'them' : 'it'}. Data health says why.
+          </Notice>
+        )}
         {data.flagged.length > 0 && (
           <Notice
             tone="warn"
@@ -103,6 +114,8 @@ export default function Overview() {
       </p>
 
       <ValueChart />
+
+      <WhatMoved />
 
       <Section
         title="Holdings"
@@ -267,14 +280,40 @@ function OverviewSkeleton() {
   );
 }
 
+interface DayEvents {
+  date: string;
+  buys: string[];
+  sells: string[];
+  splits: string[];
+}
+
 function ValueChart() {
   const config = useApi<{ today: string }>('/api/config');
   const [range, setRange] = usePersistentRange('overview', { preset: '1Y' });
+  const [trades, setTrades] = usePersistent('overviewTrades', true);
   const today = config.data?.today;
-  const { data } = useApi<{ firstDate: string | null; days: { date: string; value: number; incomplete: boolean }[]; summary: { gain: number } }>(
+  const { data } = useApi<{ firstDate: string | null; days: { date: string; value: number; incomplete: boolean; dividends: number }[]; events: DayEvents[]; summary: { gain: number } }>(
     today ? `/api/series${rangeQuery(range, today)}` : null,
   );
   const c = useChartColors();
+  const events = new Map((data?.events ?? []).map((e) => [e.date, e]));
+  const note = (d: { date: string; dividends: number }) => {
+    const e = events.get(d.date);
+    const parts = [
+      e?.buys.length ? `Bought ${e.buys.join(', ')}` : '',
+      e?.sells.length ? `Sold ${e.sells.join(', ')}` : '',
+      e?.splits.length ? `Split: ${e.splits.join(', ')}` : '',
+      d.dividends >= 0.005 ? `Dividends ${money(d.dividends)}` : '',
+    ].filter(Boolean);
+    return parts.length ? parts.join(' · ') : undefined;
+  };
+  const markers: Marker[] = !trades || !data ? [] : data.days.flatMap((d, i) => {
+    const e = events.get(d.date);
+    if (!e) return [];
+    return (['Buy', 'Sell', 'Split'] as const)
+      .filter((type) => e[type === 'Buy' ? 'buys' : type === 'Sell' ? 'sells' : 'splits'].length)
+      .map((type, k) => ({ id: i * 3 + k, date: d.date, price: d.value, type }));
+  });
   return (
     <Section
       title="Value"
@@ -285,6 +324,9 @@ function ValueChart() {
               Gain over range <span className={`font-semibold ${tone(data.summary.gain)}`}>{money(data.summary.gain, { signed: true })}</span>
             </span>
           )}
+          <Button size="sm" variant={trades ? 'secondary' : 'ghost'} aria-pressed={trades} onClick={() => setTrades(!trades)} title={trades ? 'Hide trade markers' : 'Mark buys, sells and splits on the chart'}>
+            Trades
+          </Button>
           <RangeSelector value={range} onChange={setRange} min={data?.firstDate} max={today} />
         </span>
       }
@@ -292,13 +334,22 @@ function ValueChart() {
       {!data ? (
         <div className="h-[220px] animate-pulse rounded bg-surface-2" />
       ) : data.days.length ? (
-        <LineChartFrame
-          label="Portfolio market value"
-          rows={data.days.map((d) => ({ date: d.date, incomplete: d.incomplete, value: d.value }))}
-          series={[{ key: 'value', label: 'Market value', color: c.s1, area: true, format: (v) => money(v) }]}
-          yFormat={axisMoney}
-          height={220}
-        />
+        <>
+          <LineChartFrame
+            label="Portfolio market value"
+            rows={data.days.map((d) => ({ date: d.date, incomplete: d.incomplete, value: d.value, note: note(d) }))}
+            series={[{ key: 'value', label: 'Market value', color: c.s1, area: true, format: (v) => money(v) }]}
+            yFormat={axisMoney}
+            height={220}
+            markers={markers}
+            letterLimit={30}
+          />
+          {markers.length > 0 && (
+            <p className="mt-1 text-xs text-muted">
+              {markers.length > 30 ? 'Blue dots are buys, grey dots sells and splits' : 'B = buy, S = sell, × = split'}, on the day’s closing value. Hover a day for the tickers and any dividends.
+            </p>
+          )}
+        </>
       ) : (
         <Empty title="No trading days in this range">Pick a wider range.</Empty>
       )}

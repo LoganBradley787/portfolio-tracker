@@ -2,7 +2,7 @@
 
 A local, single-user replacement for the Google Sheets stock tracker. It keeps your transactions in a SQLite file, fetches prices and splits from Tiingo, and shows holdings, realized gains, true daily history, returns and allocation at `http://127.0.0.1:3000`.
 
-Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and to Yahoo Finance the ticker of each stock without a sector and of each ETF you hold. Portfolio amounts, share counts, and exposure calculations stay on your machine.
+Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and to Yahoo Finance the ticker of each stock without a sector and of each ETF you hold (for its sector breakdown and expense ratio). Portfolio amounts, share counts, and exposure calculations stay on your machine.
 
 ## Run it
 
@@ -20,7 +20,7 @@ npm start          # builds the client the first time, then serves http://127.0.
 - `npm test` runs every test (no network). `npm run typecheck` runs TypeScript.
 - **Commit guard.** `npm install` points git at the hooks in `.githooks/`. Before each commit they refuse `.env` files, anything in `local-notes/` or `data/`, databases and spreadsheets, any value from your `.env`, and any word listed in `local-notes/blocked-words.txt` (one per line; optional). `npx tsx scripts/commit-guard.ts --all` checks the whole tree.
 - After pulling new code, delete `dist/` (or run `npm run build`) so `npm start` rebuilds the client.
-- `npx tsx scripts/demo-server.ts` runs the app on port 3001 against the recorded Tiingo fixtures with the clock frozen at 2026-10-02. It is useful for trying the UI without spending API requests.
+- `npx tsx scripts/demo-server.ts` runs the app on port 3001 against the recorded Tiingo fixtures with the clock frozen at 2026-10-02 (its drop folder is `data/demo-inbox/`). It is useful for trying the UI without spending API requests.
 
 ### Sectors
 
@@ -57,16 +57,33 @@ Broker files are assumed to list newest trades first. Imports reverse same-day f
 
 Keep broker downloads in `local-notes/`, which is git-ignored, or anywhere outside the repository.
 
+### Drop folder
+
+Broker exports can skip the Import page. `npm start` creates `data/inbox/` (git-ignored, like the rest of `data/`; set `PORTFOLIO_INBOX` to use another folder). Inside it, make a folder named after an account and save that account's Schwab JSON or Robinhood activity CSV there, for example `data/inbox/Taxable/activity.csv`. The folder name is the account.
+
+The app notices the file within a few seconds while it is running, or at the next start. It copies the database to `data/backups/`, adds the trades it does not already have (the same matching as the Import page, so dropping an overlapping or repeated export is safe), and moves the file to that account's `imported/` folder. A file with a malformed trade, a file that is not a broker export, or a file left outside an account folder is not imported at all: it stays where it is, and **Data health → Drop folder** and a banner on the Overview say why until it is fixed or removed. The same section lists the last files handled. The sheet format is not accepted here, because it has no check against trades already in the app.
+
 ## Pages
 
-- **Overview**: totals, a value chart with a date range, holdings (default: highest gain % first, with gain/loss bars; sortable; All / Stocks / ETFs), allocation by sector (funds split into the sectors they hold, or kept as one group), asset type or position. Banners for oversells, failed refreshes and holdings without a live price.
+- **Overview**: totals, a value chart with a date range and markers for buys, sells and splits (**Trades** turns them off; hovering a day names the tickers and any dividends), what moved, holdings (default: highest gain % first, with gain/loss bars; sortable; All / Stocks / ETFs), allocation by sector (funds split into the sectors they hold, or kept as one group), asset type or position. Banners for oversells, failed refreshes and holdings without a live price.
 - **Performance**: time-weighted return against SPY, QQQ and VT (total return, their dividends reinvested), money-weighted return (IRR), volatility, drawdown, what drove the gain, invested vs value, the same money in a benchmark, and each holding's price change over the range. Also includes stocks versus ETFs, monthly returns, each position's dollars ahead or behind matched SPY trades, and selected accounts side by side.
+- **Outlook**: a range of possible future values, expected dividend income, and what the funds held cost in fees.
 - **Exposure**: current direct ownership plus estimated underlying equity exposure through held VOO and VT. Sort by company/security, direct dollars, each fund's contribution, or total exposure; search the full holdings universe and expand a name for its breakdown. Percentages use the whole selected portfolio, including unexpanded funds.
 - **Realized**: every sale with totals; **Dividends** lists every dividend received (by ex-date) with totals per year and the shares it bought; **By tax year** (FIFO only) splits short- and long-term gains, with the lots behind them, plus each year's dividends. Not tax advice; wash sales are ignored.
 - **Transactions**: add, edit, delete, reorder same-day rows (order matters for average cost), import, export.
 - **Data health**: refresh status and request budget, tickers with no data (set a provider symbol), the split cross-check, oversells, trades more than 20% from that day's close, price gaps, and the sheet's own benchmark method as a check figure.
 - **Securities** (from Data health): name, sector, asset type and provider symbol for each ticker.
 - **Ticker detail** (click a ticker in a table): split-adjusted price chart with buy/sell markers, entered transactions, realized sales, dividends, splits and remaining FIFO lots. The header's account selection and the cost method from Settings apply here too. The position and lots are shown at the range end; event tables cover the selected range. Under average cost, switch to FIFO to inspect individual lots.
+
+### What moved
+
+On the Overview, **What moved** lists each holding's dollar gain over the last day, week (seven calendar days) or month, biggest moves first. The figures use the same convention as the range gain, so they add up to it: dividends count, money added or taken out does not. The period ends on the last day a held ticker has a price, so on a weekend the "day" is Friday. A holding with no quote yet for that day shows no move for it, even while the holdings table's Today column still shows its previous session.
+
+### Outlook
+
+- **Where this could go** runs 2,000 simulated paths from today's value of the selected accounts, adding a fixed amount each month, and shows the middle outcome with the bands that hold half and eight in ten of the outcomes. It is in today's dollars: returns are after inflation, averaging 3%, 5% (default) or 7% a year with a 16% yearly swing. The monthly amount defaults to your net money added per month over the last 12 complete months, and can be typed over. An optional target adds the year the middle outcome reaches it and the share of outcomes that get there. The same inputs always give the same figures. It is a range under stated assumptions, not a forecast; your actual holdings, taxes and fees are not modelled. Your choices are kept in the browser, not the database.
+- **Dividend income** estimates the next twelve months by paying each holding's last twelve months of dividends per share (restated for splits) on the shares held today. It also guesses each next ex-date from the usual gap between payments, and lists dividends received by year. Cuts, rises and special dividends are not anticipated.
+- **Fund fees** multiplies each held fund's expense ratio by its value. The ratio comes from Yahoo Finance in the same weekly request as the fund's sector breakdown, so it adds no requests; a fund Yahoo publishes no ratio for is listed and left out of the totals. The 10-, 20- and 30-year cost is how much smaller today's fund holdings end up with the fee taken yearly than without it, at 7% growth a year before fees. Money added later is not counted.
 
 ### New comparisons
 

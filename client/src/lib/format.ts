@@ -2,6 +2,7 @@ const MINUS = '−';
 
 const money2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const money4 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+const money0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 const sharesFmt = new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 });
 const pctFmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -10,10 +11,10 @@ function sign(n: number, s: string, signed: boolean): string {
   return signed && n > 0 && Math.abs(n) >= 0.005 ? '+' + s : s;
 }
 
-/** $1,234.56 (or −$1,234.56; +$… when signed). */
-export function money(n: number | null | undefined, opts: { signed?: boolean; precise?: boolean } = {}): string {
+/** $1,234.56 (or −$1,234.56; +$… when signed). `whole` rounds to the dollar, for estimates. */
+export function money(n: number | null | undefined, opts: { signed?: boolean; precise?: boolean; whole?: boolean } = {}): string {
   if (n == null || !Number.isFinite(n)) return '—';
-  const f = opts.precise ? money4 : money2;
+  const f = opts.whole ? money0 : opts.precise ? money4 : money2;
   return sign(n, '$' + f.format(Math.abs(n)), !!opts.signed);
 }
 

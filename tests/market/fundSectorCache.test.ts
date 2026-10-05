@@ -4,7 +4,7 @@ import { openDatabase } from '../../src/db/migrate.ts';
 import type { FundBreakdown } from '../../src/engine/allocation.ts';
 import { FundSectorCache } from '../../src/market/fundSectorCache.ts';
 
-const stocks: FundBreakdown = { stock: 1, bond: 0, sectors: { Technology: 0.6, Healthcare: 0.4 } };
+const stocks: FundBreakdown = { stock: 1, bond: 0, sectors: { Technology: 0.6, Healthcare: 0.4 }, expenseRatio: 0.0003 };
 
 function setup() {
   let time = new Date('2026-10-03T16:00:00Z');
@@ -81,6 +81,27 @@ describe('fund sector cache', () => {
     await cache.refresh();
     expect(cache.report()[0]).toMatchObject({ stale: true, lastError: 'down' });
     expect(cache.breakdowns()).toEqual({ VOO: stocks });
+    q.db.close();
+  });
+
+  it('fetches again, once, a breakdown saved before fees were read', async () => {
+    const { q, cache, trade, fundBreakdown, advance, answer } = setup();
+    trade('VOO'); trade('BND');
+    const { expenseRatio: _fee, ...legacy } = stocks;
+    answer(legacy);
+    await cache.refresh();
+    expect(cache.expenseRatios()).toEqual({});
+    answer({ ...stocks, expenseRatio: null });
+    advance(0.2); // inside the retry window
+    await cache.refresh();
+    expect(fundBreakdown).toHaveBeenCalledTimes(2);
+    advance(0.1);
+    await cache.refresh();
+    expect(fundBreakdown).toHaveBeenCalledTimes(4);
+    expect(cache.expenseRatios()).toEqual({ BND: null, VOO: null });
+    advance(1);
+    await cache.refresh();
+    expect(fundBreakdown).toHaveBeenCalledTimes(4);
     q.db.close();
   });
 

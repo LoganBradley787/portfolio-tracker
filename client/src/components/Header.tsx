@@ -9,6 +9,7 @@ const PAGES = [
   { path: '/', label: 'Overview' },
   { path: '/performance', label: 'Performance' },
   { path: '/exposure', label: 'Exposure' },
+  { path: '/outlook', label: 'Outlook' },
   { path: '/realized', label: 'Realized' },
   { path: '/transactions', label: 'Transactions' },
   { path: '/health', label: 'Data health' },

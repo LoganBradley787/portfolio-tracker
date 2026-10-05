@@ -6,7 +6,17 @@ import { methodParam } from '../params.ts';
 export function healthRoutes(ctx: AppContext) {
   const r = new Hono();
 
-  r.get('/health-report', (c) => c.json(healthReport(ctx, methodParam(c.req.query('method')))));
+  r.get('/health-report', (c) => {
+    ctx.inbox?.maybeScan();
+    return c.json(healthReport(ctx, methodParam(c.req.query('method'))));
+  });
+
+  /** Looks in the drop folder now, rather than waiting for the watcher. */
+  r.post('/inbox/scan', (c) => {
+    if (!ctx.inbox) return c.json({ errors: ['No drop folder is configured'] }, 404);
+    const handled = ctx.inbox.scan();
+    return c.json({ handled, ...ctx.inbox.status() });
+  });
 
   /** Starts a refresh in the background and returns at once. */
   r.post('/refresh', (c) => {

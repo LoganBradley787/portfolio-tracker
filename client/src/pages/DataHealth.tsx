@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import type { PriceGap, PriceWarning, SplitCheck } from '../../../src/engine/health.ts';
 import type { Oversell } from '../../../src/engine/costBasis.ts';
 import type { Security, StoredSplit } from '../../../src/db/queries.ts';
+import type { InboxStatus } from '../../../src/server/inbox.ts';
+import { DropFolder } from '../components/DropFolder.tsx';
 import { Table, type Column } from '../components/Table.tsx';
 import { Button, ErrorLine, inputClass, Notice, PageTitle, Section, Segmented, Skeleton } from '../components/ui.tsx';
 import { api } from '../lib/api.ts';
@@ -23,6 +25,7 @@ interface HealthResponse {
   priceWarnings: PriceWarning[];
   cashDividends: { date: string; ticker: string; account: string; amount: number }[];
   fundSectors: { ticker: string; lastCheckedAt: string | null; lastError: string | null; stale: boolean }[];
+  inbox: InboxStatus | null;
   sheetMirror: { benchmark: string; units: number; cost: number; unitsSold: number; realized: number; unrealized: number; missing: number; negative: boolean } | null;
 }
 
@@ -96,6 +99,8 @@ export default function DataHealth() {
       </Section>
 
       <SecuritiesSection securities={data.securities} attention={attention} onChanged={changed} />
+
+      {data.inbox && <DropFolder inbox={data.inbox} onChanged={changed} />}
 
       <Section title="Split cross-check" count={data.splitCheck.length}>
         <p className="mb-2.5 max-w-prose text-[13px] text-muted">

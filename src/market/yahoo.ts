@@ -1,5 +1,5 @@
 // Yahoo Finance's public search endpoint; unofficial and undocumented, so every field is checked.
-// Used only for a company's name and sector and a fund's sector breakdown, which Tiingo's free tier does not give.
+// Used only for a company's name and sector and a fund's sector breakdown and fee, which Tiingo's free tier does not give.
 import type { FundBreakdown } from '../engine/allocation.ts';
 
 export interface CompanyProfile {
@@ -59,6 +59,14 @@ const fraction = (value: unknown, what: string): number => {
   return Math.min(raw, 1);
 };
 
+/** The fund's yearly fee from the `fundProfile` module; null when Yahoo publishes none. */
+function expenseRatio(profile: unknown): number | null {
+  const fees = (profile as { feesExpensesInvestment?: { annualReportExpenseRatio?: { raw?: unknown } } } | null | undefined)?.feesExpensesInvestment;
+  const raw = fees?.annualReportExpenseRatio?.raw;
+  // A fee of a fifth of the fund a year is a misread field, not a fund.
+  return typeof raw === 'number' && Number.isFinite(raw) && raw >= 0 && raw < 0.2 ? raw : null;
+}
+
 /**
  * The `topHoldings` module of quoteSummary. Sector weights describe only the stock
  * part of the fund, so a bond fund can read "100% Energy" on a sliver of stock;
@@ -67,7 +75,8 @@ const fraction = (value: unknown, what: string): number => {
 export function mapYahooFundBreakdown(json: unknown): FundBreakdown | null {
   const summary = (json as { quoteSummary?: { result?: unknown } } | null)?.quoteSummary;
   if (!summary) throw new Error('Yahoo returned no quote summary');
-  const top = Array.isArray(summary.result) ? (summary.result[0] as { topHoldings?: Record<string, unknown> } | undefined)?.topHoldings : null;
+  const result = Array.isArray(summary.result) ? (summary.result[0] as { topHoldings?: Record<string, unknown>; fundProfile?: unknown } | undefined) : null;
+  const top = result?.topHoldings;
   if (!top) return null;
   if (!Array.isArray(top.sectorWeightings)) throw new Error('Yahoo fund breakdown has no sector weightings');
   const sectors: Record<string, number> = {};
@@ -77,7 +86,7 @@ export function mapYahooFundBreakdown(json: unknown): FundBreakdown | null {
       if (weight > 0) sectors[SECTOR_NAMES[key] ?? key] = weight;
     }
   }
-  return { stock: fraction(top.stockPosition, 'stock position'), bond: fraction(top.bondPosition, 'bond position'), sectors };
+  return { stock: fraction(top.stockPosition, 'stock position'), bond: fraction(top.bondPosition, 'bond position'), sectors, expenseRatio: expenseRatio(result?.fundProfile) };
 }
 
 const BROWSER = { 'User-Agent': 'Mozilla/5.0' };
@@ -110,7 +119,7 @@ export class YahooProfileProvider implements ProfileProvider, FundSectorProvider
 
   private async summary(symbol: string): Promise<Response> {
     const { cookie, crumb } = this.session ??= await this.openSession();
-    const url = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=topHoldings&crumb=${encodeURIComponent(crumb)}`;
+    const url = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=topHoldings,fundProfile&crumb=${encodeURIComponent(crumb)}`;
     return this.fetchFn(url, { headers: { Accept: 'application/json', Cookie: cookie, ...BROWSER }, signal: AbortSignal.timeout(15_000) });
   }
 

@@ -22,6 +22,8 @@ export interface FundBreakdown {
   stock: number;
   bond: number;
   sectors: Record<string, number>;
+  /** Annual fee as a fraction of assets; null when none is published, absent on a breakdown saved before fees were read. */
+  expenseRatio?: number | null;
 }
 
 export const UNASSIGNED = 'Unassigned';

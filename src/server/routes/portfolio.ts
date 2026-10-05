@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../context.ts';
 import { accountsParam, assetTypeParam, methodParam, sortParam } from '../params.ts';
-import { exposureView, performanceView, portfolioView, realizedView, seriesView, tickerView } from '../service.ts';
+import { exposureView, moversView, outlookView, performanceView, portfolioView, realizedView, seriesView, tickerView } from '../service.ts';
 import { parseDate } from '../../import/parse.ts';
 
 export function portfolioRoutes(ctx: AppContext) {
@@ -26,10 +26,19 @@ export function portfolioRoutes(ctx: AppContext) {
   });
 
   r.get('/portfolio', (c) => {
+    ctx.inbox?.maybeScan();
     ctx.cache.maybeRefresh();
     ctx.sectors.maybeRefresh();
     ctx.fundSectors.maybeRefresh();
     return c.json(portfolioView(ctx, { assetType: assetTypeParam(c.req.query('assetType')), method: methodParam(c.req.query('method')), accounts: accountsParam(c.req.queries('account')) }));
+  });
+
+  r.get('/movers', (c) => c.json(moversView(ctx, { method: methodParam(c.req.query('method')), accounts: accountsParam(c.req.queries('account')) })));
+
+  r.get('/outlook', (c) => {
+    ctx.cache.maybeRefresh();
+    ctx.fundSectors.maybeRefresh();
+    return c.json(outlookView(ctx, { method: methodParam(c.req.query('method')), accounts: accountsParam(c.req.queries('account')) }));
   });
 
   r.get('/realized', (c) =>

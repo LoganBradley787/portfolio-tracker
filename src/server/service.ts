@@ -10,6 +10,10 @@ import { priceChange, splitAdjustedBars, splitRatio } from '../engine/prices.ts'
 import { allocation } from '../engine/allocation.ts';
 import { turningLongTermSoon } from '../engine/sellPreview.ts';
 import { moneyAdded } from '../engine/moneyAdded.ts';
+import { movement, type MovePeriod } from '../engine/movers.ts';
+import { fundFees } from '../engine/fees.ts';
+import { forwardIncome } from '../engine/income.ts';
+import { contributionPace } from '../engine/projection.ts';
 import { contribution, dailyReturns, drawdown, investedMask, monthlyReturns, rangeIrr, twrIndex, volatility } from '../engine/returns.ts';
 import type { AssetType, CostMethod, Quote, SecurityStatus, Transaction } from '../engine/types.ts';
 import type { Security } from '../db/queries.ts';
@@ -134,6 +138,8 @@ export function portfolioView(ctx: AppContext, opts: { assetType?: AssetType; me
     oversells: ledger.oversells,
     allocation: allocation(holdings, Object.fromEntries(state.securities.map((s) => [s.ticker, s.sector])), ctx.fundSectors.breakdowns()),
     pricesAsOf: asOfs.sort().pop() ?? null,
+    /** Files in the drop folder that could not be imported. */
+    inboxWaiting: ctx.inbox?.status().waiting.length ?? 0,
     flagged: holdings.filter((h) => h.flag).map((h) => ({ ticker: h.ticker, flag: h.flag })),
     transactionCount: state.transactions.length,
     refresh: refreshInfo(ctx),
@@ -211,6 +217,7 @@ export function healthReport(ctx: AppContext, method: CostMethod = 'average') {
     fundSectors: ctx.fundSectors.report().filter((f) => f.stale || f.lastError),
     /** Dividends that couldn't be reinvested for want of a close near the ex-date. */
     cashDividends: state.drip.cash.filter((c) => c.reason === 'no close'),
+    inbox: ctx.inbox?.status() ?? null,
   };
 }
 
@@ -288,6 +295,88 @@ function benchmarkData(state: State, calendar: string[], from: string, to: strin
   );
 }
 
+export interface DayEvents {
+  date: string;
+  buys: string[];
+  sells: string[];
+  splits: string[];
+}
+
+/** Entered trades, and splits of tickers held, on the trading day each lands on. */
+function dayEvents(state: State, series: DayPoint[], from: string, to: string): DayEvents[] {
+  const days = new Map<string, DayEvents>();
+  const day = (date: string) => {
+    const landing = series.find((p) => p.date >= date);
+    if (!landing || landing.date < from || landing.date > to) return null;
+    let d = days.get(landing.date);
+    if (!d) days.set(landing.date, (d = { date: landing.date, buys: [], sells: [], splits: [] }));
+    return { d, point: landing };
+  };
+  const add = (list: string[], ticker: string) => {
+    if (!list.includes(ticker)) list.push(ticker);
+  };
+  for (const t of state.transactions) {
+    const hit = day(t.date);
+    if (hit) add(t.type === 'Buy' ? hit.d.buys : hit.d.sells, t.ticker);
+  }
+  for (const s of state.splits) {
+    const landing = series.find((p) => p.date >= s.exDate);
+    if (landing && landing.byTicker[s.ticker]?.shares > 0) {
+      const hit = day(s.exDate);
+      if (hit) add(hit.d.splits, s.ticker);
+    }
+  }
+  return [...days.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
+}
+
+/** The portfolio's gain over the last day, week and month, holding by holding. */
+export function moversView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[] }) {
+  const state = loadState(ctx, opts.accounts);
+  const today = ctx.today();
+  const series = seriesFor(ctx, state, opts.method, calendarFor(state, today));
+  // The last day a held ticker's price changed: a weekend or holiday "today" moved nothing.
+  let asOf: string | null = null;
+  for (const [ticker, d] of Object.entries(series.at(-1)?.byTicker ?? {})) {
+    if (!(d.shares > 0)) continue;
+    for (const date of [state.bars[ticker]?.at(-1)?.date, state.quotes[ticker]?.asOf.slice(0, 10)]) {
+      if (date && date <= today && (!asOf || date > asOf)) asOf = date;
+    }
+  }
+  const periods: MovePeriod[] = ['day', 'week', 'month'];
+  return {
+    today,
+    asOf,
+    periods: Object.fromEntries(periods.map((p) => [p, asOf ? movement(series, asOf, p) : null])) as Record<MovePeriod, ReturnType<typeof movement>>,
+  };
+}
+
+/** Forward-looking figures: the pace of money added, expected dividend income, and fund fees. */
+export function outlookView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[] }) {
+  const state = loadState(ctx, opts.accounts);
+  const today = ctx.today();
+  const ledger = runLedger(state.ledgerTransactions, state.splits, { method: opts.method, dividends: state.dividends });
+  const { holdings, totals } = computeHoldings({
+    positions: ledger.positions, prices: currentPrices(state, ledger.positions.keys()),
+    assetTypes: state.assetTypes, statuses: state.statuses,
+  });
+  const added = moneyAdded({ transactions: state.ledgerTransactions, splits: state.splits, today, value: totals.equity });
+  const income = forwardIncome({
+    positions: holdings.map((h) => ({ ticker: h.ticker, shares: h.shares, value: h.equity })),
+    dividends: state.dividends, splits: state.splits, today,
+  });
+  return {
+    today,
+    accounts: opts.accounts ?? null,
+    value: totals.equity,
+    transactionCount: state.transactions.length,
+    pace: contributionPace(added.months, today),
+    income: { ...income, received: dividendsByYear(ledger.dividends).map(({ year, total }) => ({ year, total })) },
+    fees: fundFees({ holdings, expenseRatios: ctx.fundSectors.expenseRatios() }),
+    /** Holdings valued without a live price, so the figures built on them are approximate. */
+    flagged: holdings.filter((h) => h.flag).map((h) => ({ ticker: h.ticker, flag: h.flag })),
+  };
+}
+
 export function seriesView(ctx: AppContext, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[] }) {
   const state = loadState(ctx, opts.accounts);
   const calendar = calendarFor(state, ctx.today());
@@ -322,6 +411,7 @@ export function seriesView(ctx: AppContext, opts: { from?: string; to?: string; 
     to,
     days,
     summary: rangeSummary(series, from, to),
+    events: dayEvents(state, series, from, to),
     benchmarks: Object.fromEntries(benchmarks.map((b) => [b, { available: bench[b].available, priceReturn: bench[b].priceReturn, totalReturn: bench[b].totalReturn }])),
     incompleteDays: days.filter((p) => p.incomplete).length,
   };

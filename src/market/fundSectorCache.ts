@@ -1,4 +1,4 @@
-// Sector breakdowns of the ETFs currently held, refreshed weekly in the background.
+// Sector breakdowns and fees of the ETFs currently held, refreshed weekly in the background.
 // A failed refresh keeps the last good breakdown; Data health reports one that has gone stale.
 import type { Queries } from '../db/queries.ts';
 import { currentLedger } from '../db/ledgerState.ts';
@@ -38,6 +38,11 @@ export class FundSectorCache {
     return this.q.listSecurities().filter((s) => s.assetType === 'ETF' && held.has(s.ticker)).map((s) => s.ticker);
   }
 
+  /** Each saved fund's yearly fee; null when Yahoo publishes none, absent until it has been read. */
+  expenseRatios(): Record<string, number | null> {
+    return Object.fromEntries(this.q.listFundSectors().flatMap((f) => (f.breakdown?.expenseRatio !== undefined ? [[f.ticker, f.breakdown.expenseRatio]] : [])));
+  }
+
   breakdowns(): Record<string, FundBreakdown> {
     return Object.fromEntries(this.q.listFundSectors().flatMap((f) => (f.breakdown ? [[f.ticker, f.breakdown]] : [])));
   }
@@ -59,6 +64,8 @@ export class FundSectorCache {
     return this.heldFunds().filter((ticker) => {
       const row = saved.get(ticker);
       if (row && now - Date.parse(row.lastAttemptAt) < RETRY_MS) return false;
+      // Saved before fees were read: fetch again rather than wait out the week.
+      if (row?.breakdown && row.breakdown.expenseRatio === undefined) return true;
       return !row?.lastCheckedAt || now - Date.parse(row.lastCheckedAt) >= REFRESH_MS;
     });
   }

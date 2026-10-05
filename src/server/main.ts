@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { createApp } from './app.ts';
@@ -10,10 +11,13 @@ const PORT = Number(process.env.PORT ?? 3000);
 const CLIENT_DIR = 'dist/client';
 
 loadEnv();
+const dbPath = process.env.PORTFOLIO_DB ?? 'data/portfolio.db';
 const ctx = createContext({
-  dbPath: process.env.PORTFOLIO_DB ?? 'data/portfolio.db',
+  dbPath,
   apiKey: process.env.TIINGO_API_KEY?.trim() || null,
+  inboxDir: process.env.PORTFOLIO_INBOX ?? join(dirname(dbPath), 'inbox'),
 });
+ctx.inbox?.start();
 const app = createApp(ctx);
 
 if (existsSync(CLIENT_DIR)) {

@@ -7,11 +7,14 @@ import { createApp } from '../src/server/app.ts';
 import { createContext } from '../src/server/context.ts';
 import { fakeTiingo } from '../tests/helpers/fakeTiingo.ts';
 import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { mapVanguardHoldings } from '../src/market/vanguard.ts';
 
 const PORT = Number(process.env.PORT ?? 3001);
+const dbPath = process.env.PORTFOLIO_DB ?? 'data/demo.db';
 const ctx = createContext({
-  dbPath: process.env.PORTFOLIO_DB ?? 'data/demo.db',
+  dbPath,
+  inboxDir: join(dirname(dbPath), 'demo-inbox'),
   apiKey: 'fixture',
   fetchFn: fakeTiingo().fetchFn,
   fundHoldingsProvider: {
@@ -23,6 +26,7 @@ const ctx = createContext({
   fundSectorProvider: { fundBreakdown: async () => null },
   now: () => new Date('2026-10-02T16:30:00.000Z'),
 });
+ctx.inbox?.start();
 const app = createApp(ctx);
 app.use('/*', serveStatic({ root: 'dist/client' }));
 app.get('*', serveStatic({ root: 'dist/client', path: 'index.html' }));

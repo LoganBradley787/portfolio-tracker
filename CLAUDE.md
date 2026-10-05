@@ -14,7 +14,7 @@ If a `local-notes/` folder exists, read `local-notes/README.md` before starting 
 - `src/import/` — parsers for the spreadsheet format and broker exports. Pure.
 - `src/market/` — price, fund-holdings and sector providers and their caches.
 - `src/db/` — SQLite schema, migrations and queries. The database lives in `data/`, which is git-ignored.
-- `src/server/` — the API. `client/` — the React app.
+- `src/server/` — the API, and the drop folder that imports broker files saved into `data/inbox/`. `client/` — the React app.
 - `tests/` — mirrors `src/`. `tests/fixtures/` holds recorded public market data and an invented sample portfolio.
 
 ## Rules

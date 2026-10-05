@@ -50,12 +50,27 @@ describe('Yahoo fund breakdown', () => {
     expect(Object.values(b.sectors).reduce((n, w) => n + w, 0)).toBeCloseTo(1, 2);
   });
 
+  it('reads the yearly fee from a recorded response with the fund profile', () => {
+    const withProfile = JSON.parse(readFileSync(join(FIXTURES, 'yahoo', 'fundSummary_VOO.json'), 'utf8'));
+    expect(mapYahooFundBreakdown(withProfile)!.expenseRatio).toBeCloseTo(0.0003, 6);
+    expect(mapYahooFundBreakdown(fund)!.expenseRatio).toBeNull(); // no profile in the older recording
+    const fee = (raw: unknown) => mapYahooFundBreakdown({ quoteSummary: { result: [{
+      topHoldings: { stockPosition: position(1), bondPosition: position(0), sectorWeightings: [] },
+      fundProfile: { feesExpensesInvestment: { annualReportExpenseRatio: raw === undefined ? {} : { raw } } },
+    }] } })!.expenseRatio;
+    expect(fee(0)).toBe(0);
+    expect(fee(0.0095)).toBe(0.0095);
+    expect(fee(undefined)).toBeNull();
+    expect(fee(0.95)).toBeNull(); // a percentage where a fraction belongs
+    expect(fee('0.03%')).toBeNull();
+  });
+
   it('drops zero weights and keeps a sector key it does not know', () => {
     const b = mapYahooFundBreakdown(summary({
       stockPosition: position(0.002), bondPosition: position(0.99),
       sectorWeightings: [{ energy: position(1) }, { technology: position(0) }, { new_sector: position(0.1) }],
     }));
-    expect(b).toEqual({ stock: 0.002, bond: 0.99, sectors: { Energy: 1, new_sector: 0.1 } });
+    expect(b).toEqual({ stock: 0.002, bond: 0.99, sectors: { Energy: 1, new_sector: 0.1 }, expenseRatio: null });
   });
 
   it('returns null for a symbol with no fund data', () => {
@@ -85,7 +100,7 @@ describe('Yahoo fund breakdown', () => {
     expect(await yahoo.fundBreakdown('VOO')).toMatchObject({ bond: 0 });
     expect(await yahoo.fundBreakdown('VT')).toMatchObject({ bond: 0 });
     expect(crumbs).toBe(1); // session reused
-    expect(seen.at(-1)).toEqual({ url: expect.stringContaining('/quoteSummary/VT?modules=topHoldings&crumb=crumb1'), cookie: 'A3=abc' });
+    expect(seen.at(-1)).toEqual({ url: expect.stringContaining('/quoteSummary/VT?modules=topHoldings,fundProfile&crumb=crumb1'), cookie: 'A3=abc' });
     expect(await yahoo.fundBreakdown('QQQ')).toMatchObject({ bond: 0 }); // third summary call is refused once
     expect(crumbs).toBe(2);
     expect(seen.at(-1)!.url).toContain('crumb=crumb2');

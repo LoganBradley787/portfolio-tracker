@@ -380,6 +380,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
         Paste the Transactions tab copied from Google Sheets (header row included), or choose a CSV file. Columns are matched by name: Ticker, Asset Type, Type,
         Shares, Split (n to 1), Avg Price, Date, Account. Split rows are not applied; splits come from market data. Or choose a Schwab transaction export saved as
         JSON or a Robinhood account activity CSV: buys and sells are added to one account. Dividend reinvestments are skipped because the app reinvests dividends itself.
+        Broker files can also be saved into the drop folder and are imported without coming here; the Data health page shows where it is.
       </p>
       <textarea
         className={`${inputClass} h-36 resize-y py-2 font-mono text-xs leading-5`}

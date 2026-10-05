@@ -7,6 +7,7 @@ import DataHealth from './pages/DataHealth.tsx';
 import Overview from './pages/Overview.tsx';
 import Performance from './pages/Performance.tsx';
 import Exposure from './pages/Exposure.tsx';
+import Outlook from './pages/Outlook.tsx';
 import Realized from './pages/Realized.tsx';
 import Transactions from './pages/Transactions.tsx';
 import Securities from './pages/Securities.tsx';
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/" element={<Overview />} />
             <Route path="/performance" element={<Performance />} />
             <Route path="/exposure" element={<Exposure />} />
+            <Route path="/outlook" element={<Outlook />} />
             <Route path="/realized" element={<Realized />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/health" element={<DataHealth />} />
