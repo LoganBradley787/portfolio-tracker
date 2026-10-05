@@ -239,15 +239,6 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       sort: (h) => h.dayChangePct,
       render: (h) => <span className={tone(h.dayChange)}>{pct(h.dayChangePct)}</span>,
       total: <span className={tone(t.dayChange)}>{pct(t.dayChangePct)}</span>,
-      className: 'hidden 2xl:table-cell',
-    },
-    {
-      key: 'divs',
-      label: 'Dividends',
-      title: 'Dividends received on this ticker, all time',
-      numeric: true,
-      sort: (h) => h.dividends,
-      render: (h) => (h.dividends ? <span className="text-gain">{money(h.dividends, { signed: true })}</span> : <span className="text-muted">—</span>),
       className: 'hidden xl:table-cell',
     },
     {
