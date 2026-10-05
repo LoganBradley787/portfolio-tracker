@@ -8,7 +8,7 @@ export function Flag({ flag }: { flag: string | null }) {
   if (!flag) return null;
   const t = TEXT[flag] ?? { label: flag, title: flag };
   return (
-    <span title={t.title} className="ml-2 inline-flex h-[18px] items-center rounded border border-warn/50 bg-warn-soft px-1.5 text-[11px] font-medium text-warn">
+    <span title={t.title} className="ml-2 inline-flex h-[17px] items-center rounded-sm bg-warn-soft px-1.5 text-[11px] font-medium text-warn">
       {t.label}
     </span>
   );

@@ -2,6 +2,7 @@ import { isValidElement, type ReactElement } from 'react';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { SellPreview } from '../../client/src/components/SellPreview.tsx';
 import { Table } from '../../client/src/components/Table.tsx';
+import { Stat } from '../../client/src/components/ui.tsx';
 
 // Retain hook state across renders to exercise account and quantity handlers.
 const hooks = vi.hoisted(() => ({ values: [] as unknown[], cursor: 0 }));
@@ -54,5 +55,5 @@ it('keeps the typed quantity and account during a price/holdings refresh while u
   expect(tree.find((e) => e.type === 'input')!.props.value).toBe('1.5');
   expect(tree.find((e) => e.type === 'select')!.props.value).toBe('A');
   expect(tree.find((e) => e.type === Table)!.props.rows.map((l: any) => l.account)).toEqual(['A']);
-  expect(tree.find((e) => e.type === 'dd')!.props.children).toBe('$60.00');
+  expect(tree.find((e) => e.type === Stat && e.props.label === 'Proceeds')!.props.value).toBe('$60.00');
 });

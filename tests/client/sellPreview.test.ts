@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { SellPreview } from '../../client/src/components/SellPreview.tsx';
-import { TurningLongTermSoon } from '../../client/src/components/TurningLongTermSoon.tsx';
+import { TurningLongTermSoon } from '../../client/src/pages/Activity.tsx';
 
 const input = { today: '2026-10-03', averageCost: 25,
   price: { price: 30, prevClose: null, asOf: '2026-10-02', source: 'close' as const },
@@ -14,7 +14,7 @@ const render = (element: ReturnType<typeof createElement>) => renderToStaticMark
 describe('sell estimate presentation', () => {
   it('defaults to the largest account, shows a chooser and keeps average cost pooled', () => {
     const html = render(createElement(SellPreview, { input, method: 'average' }));
-    expect(html).toContain('If I sold this today');
+    expect(html).toContain('If sold today');
     expect(html).toContain('<select');
     expect(html).toContain('<option value="A" selected=""');
     expect(html).toContain('max="2"');
@@ -65,7 +65,7 @@ describe('sell estimate presentation', () => {
   it('shows upcoming date, account, shares, unknown gains and an empty state', () => {
     const rows = [{ ticker: 'AAA', account: 'A', acquired: '2025-10-03', shares: 2, cost: 20, longTermDate: '2026-10-04', gain: null }];
     const html = render(createElement(TurningLongTermSoon, { lots: rows }));
-    expect(html).toContain('Turning long-term soon');
+    expect(html).toContain('Turning long-term in the next 60 days');
     expect(html).toContain('Oct 4, 2026');
     expect(html).toContain('No price');
     expect(html).toContain('AAA');

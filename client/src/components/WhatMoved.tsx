@@ -3,6 +3,7 @@ import type { MovePeriod, Movement } from '../../../src/engine/movers.ts';
 import { date, money, pct, tone } from '../lib/format.ts';
 import { useApi } from '../lib/useApi.ts';
 import { usePersistent } from '../lib/usePersistentRange.ts';
+import { GainBar } from './charts.tsx';
 import { TickerLink } from './TickerLink.tsx';
 import { Section, Segmented } from './ui.tsx';
 
@@ -30,6 +31,7 @@ export function WhatMoved() {
   const span = m.from === m.to ? date(m.to) : `${date(m.from)} – ${date(m.to)}`;
   return (
     <Section
+      flush
       title="What moved"
       aside={
         <Segmented<MovePeriod>
@@ -40,25 +42,19 @@ export function WhatMoved() {
         />
       }
     >
-      <p className="tnum mb-2 text-[13px] text-muted">
-        {span}: <span className={`font-semibold ${tone(m.gain)}`}>{money(m.gain, { signed: true })}</span>
+      <p className="tnum mb-2 text-xs text-muted">
+        {span}: <span className={`font-medium ${tone(m.gain)}`}>{money(m.gain, { signed: true })}</span>
         {m.returnPct !== null && <span className={tone(m.gain)}> ({pct(m.returnPct)})</span>}
         {data.asOf !== data.today && period === 'day' && ' · the last day with new prices'}
         {m.incomplete && ' · some prices were missing, so this is understated'}
       </p>
       {shown.length ? (
-        <ul className="divide-y divide-rule border-y border-rule">
+        <ul className="divide-y divide-rule border-y border-rule-strong/60">
           {shown.map((r) => (
-            <li key={r.ticker} className="grid grid-cols-[minmax(4rem,7rem)_1fr_auto_auto] items-center gap-x-4 py-2 text-[13px]">
+            <li key={r.ticker} className="grid grid-cols-[4.5rem_1fr_auto_auto] items-center gap-x-3 py-[7px] text-[13px]">
               <TickerLink ticker={r.ticker} />
-              <span aria-hidden className="relative h-3.5">
-                <span className="absolute inset-y-0 left-1/2 w-px bg-rule-strong" />
-                <span
-                  className={`absolute inset-y-0.5 ${r.gain >= 0 ? 'left-1/2 rounded-r-[3px] bg-gain/70' : 'right-1/2 rounded-l-[3px] bg-loss/70'}`}
-                  style={{ width: `${(Math.abs(r.gain) / max) * 50}%`, minWidth: 2 }}
-                />
-              </span>
-              <span className={`num w-24 text-right font-semibold ${tone(r.gain)}`}>{money(r.gain, { signed: true })}</span>
+              <GainBar value={r.gain} max={max} className="h-3 w-full" />
+              <span className={`num w-20 text-right font-medium ${tone(r.gain)}`}>{money(r.gain, { signed: true })}</span>
               <span className={`num w-16 text-right ${tone(r.gain)}`}>{pct(r.returnPct)}</span>
             </li>
           ))}
@@ -66,8 +62,8 @@ export function WhatMoved() {
       ) : (
         <p className="border-y border-rule py-2.5 text-[13px] text-muted">Nothing moved over this period.</p>
       )}
-      <p className="mt-2 text-xs text-muted">
-        Each holding’s dollar gain over the period, dividends included; money added or taken out is not counted. The percentage is that gain on the money at work in the holding.
+      <p className="mt-2 text-xs text-faint">
+        Dollar gain over the period, dividends included, money added or taken out not counted.
         {ranked.length > SHOWN && (
           <>
             {' '}

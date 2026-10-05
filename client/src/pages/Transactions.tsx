@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { Transaction } from '../../../src/engine/types.ts';
 import type { ImportResult } from '../../../src/import/parse.ts';
 import { Table, type Column } from '../components/Table.tsx';
-import { Button, Empty, ErrorLine, Field, inputClass, Notice, PageTitle, Segmented, Skeleton } from '../components/ui.tsx';
+import { Button, Empty, ErrorLine, Field, inputClass, Notice, PageHeader, Segmented, Skeleton } from '../components/ui.tsx';
+import { ACTIVITY_TABS } from '../lib/areas.ts';
 import { api, ApiError } from '../lib/api.ts';
 import { date, money, shares } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
@@ -51,28 +52,28 @@ export default function Transactions() {
 
   return (
     <div>
-      <PageTitle
-        title="Transactions"
-        aside={
+      <PageHeader
+        tabs={ACTIVITY_TABS}
+        controls={
           <>
             <a
               href="/api/export.csv"
               download
-              className="inline-flex h-8 items-center rounded-md border border-rule-strong bg-surface px-3 text-[13px] font-medium text-ink hover:bg-surface-2"
+              className="inline-flex h-7 items-center rounded border border-rule-strong/70 bg-surface px-2 text-xs font-medium text-ink hover:bg-surface-2/60"
             >
               Export CSV
             </a>
-            <Button onClick={() => setPanel(panel.kind === 'import' ? { kind: 'none' } : { kind: 'import' })} aria-expanded={panel.kind === 'import'}>
+            <Button size="sm" onClick={() => setPanel(panel.kind === 'import' ? { kind: 'none' } : { kind: 'import' })} aria-expanded={panel.kind === 'import'}>
               Import
             </Button>
-            <Button variant="primary" onClick={() => setPanel({ kind: 'form', editing: null })}>
+            <Button size="sm" variant="primary" onClick={() => setPanel({ kind: 'form', editing: null })}>
               Add transaction
             </Button>
           </>
         }
       >
         Buys and sells as traded, before any later split. Same-day order matters for average cost; use the arrows to fix it.
-      </PageTitle>
+      </PageHeader>
 
       {flash && (
         <div className="mb-4">
@@ -116,7 +117,7 @@ export default function Transactions() {
         <>
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
             <p className="tnum text-xs text-muted">
-              {rows.length} of {data.transactions.length} transactions
+              {rows.length === data.transactions.length ? `${rows.length} transactions` : `${rows.length} of ${data.transactions.length} transactions`}
             </p>
           </div>
           <TransactionTable
@@ -213,7 +214,7 @@ function TransactionTable({
       },
     },
   ];
-  return <Table caption="Transactions" rows={rows} columns={columns} rowKey={(t) => t.id} rowClassName={(t) => (t.id === editingId ? 'bg-accent-soft/60' : '')} />;
+  return <Table caption="Transactions" rows={rows} columns={columns} rowKey={(t) => t.id} rowClassName={(t) => (t.id === editingId ? 'bg-accent-soft/50' : '')} />;
 }
 
 function TransactionForm({
@@ -262,9 +263,9 @@ function TransactionForm({
 
   const amount = Number(form.shares.replace(/[$,]/g, '')) * Number(form.price.replace(/[$,]/g, ''));
   return (
-    <form onSubmit={submit} className="mb-6 rounded-md border border-rule bg-surface p-4" aria-label={editing ? 'Edit transaction' : 'Add transaction'}>
+    <form onSubmit={submit} className="mb-8 border-y border-rule-strong/60 bg-surface px-4 py-4" aria-label={editing ? 'Edit transaction' : 'Add transaction'}>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold">{editing ? `Edit ${editing.ticker} ${editing.type.toLowerCase()}` : 'Add transaction'}</h2>
+        <h2 className="text-[13px] font-semibold">{editing ? `Edit ${editing.ticker} ${editing.type.toLowerCase()}` : 'Add transaction'}</h2>
         <Button size="sm" variant="ghost" onClick={onClose}>
           Cancel
         </Button>
@@ -369,9 +370,9 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
   const ok = preview && !preview.fileErrors.length && !preview.errors.length && preview.rows.length > 0 && (!broker || account.trim() !== '');
 
   return (
-    <section className="mb-6 rounded-md border border-rule bg-surface p-4" aria-label="Import transactions">
+    <section className="mb-8 border-y border-rule-strong/60 bg-surface px-4 py-4" aria-label="Import transactions">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold">Import</h2>
+        <h2 className="text-[13px] font-semibold">Import</h2>
         <Button size="sm" variant="ghost" onClick={onClose}>
           Cancel
         </Button>
@@ -380,7 +381,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
         Paste the Transactions tab copied from Google Sheets (header row included), or choose a CSV file. Columns are matched by name: Ticker, Asset Type, Type,
         Shares, Split (n to 1), Avg Price, Date, Account. Split rows are not applied; splits come from market data. Or choose a Schwab transaction export saved as
         JSON or a Robinhood account activity CSV: buys and sells are added to one account. Dividend reinvestments are skipped because the app reinvests dividends itself.
-        Broker files can also be saved into the drop folder and are imported without coming here; the Data health page shows where it is.
+        Broker files can also be saved into the drop folder and are imported without coming here; Data → Drop folder shows where it is.
       </p>
       <textarea
         className={`${inputClass} h-36 resize-y py-2 font-mono text-xs leading-5`}
@@ -447,9 +448,9 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
                   </ul>
                 </Notice>
               )}
-              <div className="mt-3 max-h-72 overflow-auto rounded border border-rule">
+              <div className="mt-3 max-h-72 overflow-auto border-y border-rule">
                 <table className="w-full text-xs">
-                  <thead className="sticky top-0 bg-surface-2 text-muted">
+                  <thead className="sticky top-0 bg-surface text-muted">
                     <tr>
                       {['Row', 'Date', 'Ticker', 'Type', 'Shares', 'Price', 'Account'].map((h, i) => (
                         <th key={h} className={`px-2 py-1.5 font-medium ${i >= 4 && i <= 5 ? 'text-right' : 'text-left'}`}>

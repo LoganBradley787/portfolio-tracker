@@ -1,6 +1,6 @@
 export function SetupScreen() {
   return (
-    <div className="mx-auto max-w-xl rounded-md border border-rule bg-surface p-6">
+    <div className="mx-auto max-w-xl border-y border-rule-strong/60 bg-surface px-6 py-6">
       <h1 className="text-lg font-semibold">Add your Tiingo API key</h1>
       <p className="mt-2 text-[13px] text-muted">
         Prices, splits and quotes come from Tiingo’s free tier. Without a key the app still keeps your transactions, but every holding is valued at cost.

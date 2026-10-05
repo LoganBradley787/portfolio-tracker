@@ -18,8 +18,8 @@ export function DropFolder({ inbox, onChanged }: { inbox: InboxStatus; onChanged
     }
   };
   return (
-    <Section title="Drop folder" count={inbox.waiting.length} aside={<Button size="sm" busy={busy} onClick={() => void check()}>Check now</Button>}>
-      <p className="mb-3 max-w-prose text-[13px] text-muted">
+    <Section title="Where it is" aside={<Button size="sm" busy={busy} onClick={() => void check()}>Check now</Button>}>
+      <p className="mb-6 max-w-prose text-[13px] text-muted">
         Save a Schwab JSON export or a Robinhood activity CSV into a folder named after its account inside{' '}
         <code className="rounded bg-surface-2 px-1 py-0.5 font-mono text-xs text-ink">{inbox.dir}</code> (for example{' '}
         <code className="font-mono text-xs">Taxable/activity.csv</code>). Trades the app does not have yet are added, the database is copied
@@ -39,6 +39,7 @@ export function DropFolder({ inbox, onChanged }: { inbox: InboxStatus; onChanged
           </Notice>
         </div>
       )}
+      <h2 className="mb-2.5 text-[13px] font-semibold text-ink">Files handled <span className="num ml-1.5 font-normal text-faint">{inbox.recent.length}</span></h2>
       {inbox.recent.length ? (
         <Table
           caption="Files handled by the drop folder, newest first"

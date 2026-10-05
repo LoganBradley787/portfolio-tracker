@@ -4,17 +4,19 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { testApp } from '../helpers/server.ts';
 import Outlook from '../../client/src/pages/Outlook.tsx';
+import Fees from '../../client/src/pages/Fees.tsx';
+import { Dividends } from '../../client/src/pages/Activity.tsx';
 import { WhatMoved } from '../../client/src/components/WhatMoved.tsx';
 import { DropFolder } from '../../client/src/components/DropFolder.tsx';
 
-const state = vi.hoisted(() => ({ outlook: null as any, movers: null as any, saved: {} as Record<string, unknown> }));
+const state = vi.hoisted(() => ({ outlook: null as any, movers: null as any, realized: null as any, saved: {} as Record<string, unknown> }));
 vi.mock('../../client/src/lib/useApi.ts', () => ({
-  useApi: (path: string) => ({ data: path === '/api/movers' ? state.movers : state.outlook, loading: false, error: null }),
+  useApi: (path: string) => ({ data: path === '/api/movers' ? state.movers : path === '/api/realized' ? state.realized : state.outlook, loading: false, error: null }),
 }));
 vi.mock('../../client/src/lib/usePersistentRange.ts', () => ({
   usePersistent: (key: string, initial: unknown) => [state.saved[key] ?? initial, vi.fn()],
 }));
-vi.mock('../../client/src/components/charts.tsx', () => ({ axisMoney: vi.fn(), FanChart: () => null }));
+vi.mock('../../client/src/components/charts.tsx', () => ({ axisMoney: vi.fn(), FanChart: () => null, GainBar: () => null }));
 
 const render = (el: any) => renderToStaticMarkup(createElement(MemoryRouter, null, createElement(el)));
 const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
@@ -25,6 +27,7 @@ beforeAll(async () => {
   ctx.q.saveFundSectors('QQQM', { stock: 1, bond: 0, sectors: { Technology: 1 }, expenseRatio: 0.0015 }, '2026-10-01T00:00:00.000Z');
   state.outlook = (await call('GET', '/api/outlook')).body;
   state.movers = (await call('GET', '/api/movers')).body;
+  state.realized = (await call('GET', '/api/realized')).body;
 });
 
 describe('Outlook page', () => {
@@ -55,12 +58,36 @@ describe('Outlook page', () => {
     }
   });
 
-  it('lists expected dividend income and fund fees', () => {
-    const html = text(render(Outlook));
-    expect(html).toContain('Next 12 months (estimate)');
+  it('says so when there is nothing to project from', () => {
+    const original = state.outlook;
+    state.outlook = { ...original, transactionCount: 0 };
+    expect(text(render(Outlook))).toContain('Nothing to look ahead from yet');
+    state.outlook = original;
+  });
+});
+
+describe('Dividends page', () => {
+  it('lists expected dividend income and what each year paid', () => {
+    const html = text(render(Dividends));
+    expect(html).toContain('Next 12 months, estimated');
     expect(html).toContain('Every dividend is reinvested');
-    expect(html).toContain('Dividends received by year');
+    expect(html).toContain('Received by year');
     expect(html).toContain('2026 so far');
+  });
+
+  it('says so when nothing has paid a dividend', () => {
+    const original = { outlook: state.outlook, realized: state.realized };
+    state.outlook = { ...original.outlook, income: { rows: [], annual: 0, value: 0, yield: null, received: [] } };
+    state.realized = { ...original.realized, dividendEvents: [] };
+    expect(text(render(Dividends))).toContain('No dividends yet');
+    state.outlook = original.outlook;
+    state.realized = original.realized;
+  });
+});
+
+describe('Fees page', () => {
+  it('lists fund fees and what they add up to', () => {
+    const html = text(render(Fees));
     expect(html).toContain('Fees a year');
     expect(html).toContain('0.15%');
     expect(html).toContain('Cost over 30 years');
@@ -70,13 +97,9 @@ describe('Outlook page', () => {
   it('says so when a fund has no published fee or nothing is held', () => {
     const original = state.outlook;
     state.outlook = { ...original, fees: { ...original.fees, rows: [{ ticker: 'QQQM', value: 100, expenseRatio: null, annualCost: null }], annualCost: 0, missing: ['QQQM'] } };
-    expect(text(render(Outlook))).toContain('No fee is known yet for QQQM, so it is left out of the totals');
-    state.outlook = { ...original, fees: { ...original.fees, rows: [] }, income: { rows: [], annual: 0, value: 0, yield: null, received: [] } };
-    const none = text(render(Outlook));
-    expect(none).toContain('No funds held');
-    expect(none).toContain('No dividends yet');
-    state.outlook = { ...original, transactionCount: 0 };
-    expect(text(render(Outlook))).toContain('Nothing to look ahead from yet');
+    expect(text(render(Fees))).toContain('No fee is known yet for QQQM, so it is left out of the totals');
+    state.outlook = { ...original, fees: { ...original.fees, rows: [] } };
+    expect(text(render(Fees))).toContain('No funds held');
     state.outlook = original;
   });
 });

@@ -8,3 +8,6 @@ data/
 
 # Private notes, plans and real broker exports: never commit
 local-notes/
+
+# Browser automation output (screenshots of real data)
+.playwright-mcp/

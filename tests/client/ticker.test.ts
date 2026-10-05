@@ -13,7 +13,10 @@ vi.mock('../../client/src/lib/useApi.ts', () => ({
   useApi: (path: string) => ({ data: path === '/api/config' ? { today: '2026-10-02' } : state.detail,
     loading: state.loading, error: null }),
 }));
-vi.mock('../../client/src/lib/usePersistentRange.ts', () => ({ usePersistentRange: () => [{ preset: 'All' }, vi.fn()] }));
+vi.mock('../../client/src/lib/usePersistentRange.ts', () => ({
+  usePersistentRange: () => [{ preset: 'All' }, vi.fn()],
+  usePersistent: (key: string, initial: unknown) => [key === 'ticker:tab' ? 'sell' : initial, vi.fn()],
+}));
 vi.mock('../../client/src/components/charts.tsx', () => ({
   axisMoney: vi.fn(), LineChartFrame: () => null, useChartColors: () => ({ s1: '' }),
 }));
@@ -29,7 +32,7 @@ it('keeps the sale form present while ticker data refetches in the background', 
   state.loading = true;
   try {
     expect(render()).toContain('Shares to sell');
-    expect(render()).toContain('If I sold this today');
+    expect(render()).toContain('If sold today');
   } finally {
     state.loading = false;
   }

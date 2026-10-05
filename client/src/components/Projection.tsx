@@ -4,7 +4,7 @@ import { money, pct } from '../lib/format.ts';
 import { usePersistent } from '../lib/usePersistentRange.ts';
 import { axisMoney, FanChart } from './charts.tsx';
 import { Table } from './Table.tsx';
-import { Field, inputClass, Section, Segmented } from './ui.tsx';
+import { Field, inputClass, Note, Section, Segmented, Stat, StatRow } from './ui.tsx';
 
 interface Saved {
   /** Null follows the recent pace. */
@@ -47,7 +47,7 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
         />
       }
     >
-      <div className="mb-4 grid max-w-3xl grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-3">
+      <div className="mb-6 grid max-w-3xl grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-3">
         <Field
           label="Added each month"
           hint={saved.monthly === null
@@ -90,26 +90,16 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
         </div>
       </div>
 
-      <dl className="mb-4 grid grid-cols-2 gap-x-6 border-y border-rule-strong sm:grid-cols-4">
-        {[
-          [`Middle outcome in ${year(years)}`, whole(end.p50), 'half of outcomes are higher'],
-          ['8 in 10 outcomes', `${whole(end.p10)} – ${whole(end.p90)}`, 'one in ten falls below, one in ten above'],
-          ['Money put in by then', whole(end.contributed), `today’s ${whole(value)} plus ${whole(monthly)} a month`],
-          saved.target
-            ? [
-                `Reaching ${whole(saved.target)}`,
-                result.targetYear ? `Around ${year(result.targetYear)}` : `Not by ${year(years)}`,
-                `${pct(end.reached, { signed: false })} of outcomes get there by ${year(years)}`,
-              ]
-            : ['Today', whole(value), 'the starting value'],
-        ].map(([k, v, sub]) => (
-          <div key={k} className="min-w-0 py-3">
-            <dt className="text-xs text-muted">{k}</dt>
-            <dd className="num mt-0.5 text-lg leading-7 font-semibold tracking-tight">{v}</dd>
-            <dd className="text-xs text-muted">{sub}</dd>
-          </div>
-        ))}
-      </dl>
+      <StatRow cols={4} className="mb-6">
+        <Stat label={`Middle outcome in ${year(years)}`} value={whole(end.p50)} sub="half of outcomes are higher" />
+        <Stat label="8 in 10 outcomes" value={`${whole(end.p10)} – ${whole(end.p90)}`} sub="one in ten falls below, one in ten above" />
+        <Stat label="Money put in by then" value={whole(end.contributed)} sub={`today’s ${whole(value)} plus ${whole(monthly)} a month`} />
+        {saved.target ? (
+          <Stat label={`Reaching ${whole(saved.target)}`} value={result.targetYear ? `Around ${year(result.targetYear)}` : `Not by ${year(years)}`} sub={`${pct(end.reached, { signed: false })} of outcomes get there by ${year(years)}`} />
+        ) : (
+          <Stat label="Today" value={whole(value)} sub="the starting value" />
+        )}
+      </StatRow>
 
       <FanChart
         label={`Range of projected values over ${years} years`}
@@ -123,7 +113,7 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
         names={{ mid: 'Middle outcome', inner: 'Half of outcomes', outer: '8 in 10 outcomes', base: 'Money put in', target: 'Target' }}
       />
 
-      <div className="mt-4">
+      <div className="mt-6 max-w-2xl">
         <Table
           caption="Projected values every five years"
           rows={checkpoints}
@@ -138,12 +128,12 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
           ]}
         />
       </div>
-      <p className="mt-2 max-w-prose text-xs text-muted">
+      <Note>
         A range, not a forecast. Everything is in today’s dollars. It assumes returns average {Math.round(realReturn * 100)}% a year
         after inflation and swing by about {Math.round(PROJECTION_VOLATILITY * 100)}% a year, roughly how a stock-heavy
         portfolio has behaved over long periods, and that the monthly amount never changes. It is 2,000 simulated paths from
         the selected accounts’ value today; your own holdings, taxes and fees are not modelled.
-      </p>
+      </Note>
     </Section>
   );
 }

@@ -1,4 +1,6 @@
-// A sortable ledger table. Figures are right-aligned and tabular.
+// A sortable ledger table. Ruled, not boxed: a strong rule under the head,
+// hairlines between rows, and the accounting single/double rule on totals.
+// Figures are right-aligned and tabular.
 import { useMemo, useState, type ReactNode } from 'react';
 
 export interface Column<T> {
@@ -28,6 +30,7 @@ export function Table<T>({
   showTotals,
   rowClassName,
   caption,
+  dense,
 }: {
   rows: T[];
   columns: Column<T>[];
@@ -38,6 +41,7 @@ export function Table<T>({
   showTotals?: boolean;
   rowClassName?: (row: T) => string;
   caption?: string;
+  dense?: boolean;
 }) {
   const [ownSort, setOwnSort] = useState<SortState | undefined>(initialSort);
   const sort = controlledSort ?? ownSort;
@@ -65,12 +69,13 @@ export function Table<T>({
     else setOwnSort(next);
   };
 
+  const pad = dense ? 'px-2 py-1' : 'px-2.5 py-[7px]';
   return (
-    <div className="relative overflow-x-auto rounded-md border border-rule bg-surface">
+    <div className="relative overflow-x-auto">
       <table className="w-full border-collapse text-[13px]">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead>
-          <tr className="border-b border-rule-strong">
+          <tr className="border-b border-rule-strong/70">
             {columns.map((c) => {
               const active = sort?.key === c.key;
               return (
@@ -78,7 +83,7 @@ export function Table<T>({
                   key={c.key}
                   scope="col"
                   aria-sort={active ? (sort!.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-                  className={`px-2.5 py-2 text-xs font-medium whitespace-nowrap text-muted first:pl-3.5 last:pr-3.5 ${c.numeric ? 'text-right' : 'text-left'} ${c.className ?? ''}`}
+                  className={`px-2.5 pt-1 pb-1.5 text-xs font-medium whitespace-nowrap text-muted first:pl-0 last:pr-0 ${c.numeric ? 'text-right' : 'text-left'} ${c.className ?? ''}`}
                 >
                   {c.sort || c.sortable ? (
                     <button
@@ -87,7 +92,7 @@ export function Table<T>({
                       className={`inline-flex items-center gap-1 hover:text-ink ${active ? 'text-ink' : ''} ${c.numeric ? 'flex-row-reverse' : ''}`}
                     >
                       {c.label}
-                      <span aria-hidden className={`text-[10px] ${active ? 'opacity-100' : 'opacity-0'}`}>
+                      <span aria-hidden className={`text-[9px] ${active ? 'opacity-100' : 'opacity-0'}`}>
                         {sort?.dir === 'asc' ? '▲' : '▼'}
                       </span>
                     </button>
@@ -101,12 +106,9 @@ export function Table<T>({
         </thead>
         <tbody>
           {sorted.map((r) => (
-            <tr key={rowKey(r)} className={`border-b border-rule last:border-b-0 hover:bg-surface-2/60 ${rowClassName?.(r) ?? ''}`}>
+            <tr key={rowKey(r)} className={`border-b border-rule last:border-b-0 hover:bg-ink/[0.025] ${rowClassName?.(r) ?? ''}`}>
               {columns.map((c) => (
-                <td
-                  key={c.key}
-                  className={`px-2.5 py-[7px] first:pl-3.5 last:pr-3.5 ${c.numeric ? 'num text-right' : ''} ${c.className ?? ''}`}
-                >
+                <td key={c.key} className={`${pad} first:pl-0 last:pr-0 ${c.numeric ? 'num text-right' : ''} ${c.className ?? ''}`}>
                   {c.render(r)}
                 </td>
               ))}
@@ -115,9 +117,9 @@ export function Table<T>({
         </tbody>
         {showTotals && (
           <tfoot>
-            <tr className="ledger-total font-semibold">
+            <tr className="ledger-total font-medium">
               {columns.map((c) => (
-                <td key={c.key} className={`px-2.5 py-2 first:pl-3.5 last:pr-3.5 ${c.numeric ? 'num text-right' : ''} ${c.className ?? ''}`}>
+                <td key={c.key} className={`px-2.5 py-2 first:pl-0 last:pr-0 ${c.numeric ? 'num text-right' : ''} ${c.className ?? ''}`}>
                   {c.total}
                 </td>
               ))}

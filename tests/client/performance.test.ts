@@ -1,9 +1,9 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { testApp } from '../helpers/server.ts';
-import Performance from '../../client/src/pages/Performance.tsx';
+import PerformanceArea, { MoneyAddedPage, PerformanceHoldings, Returns } from '../../client/src/pages/Performance.tsx';
 
 const state = vi.hoisted(() => ({
   performance: null as any,
@@ -20,7 +20,7 @@ vi.mock('../../client/src/lib/useApi.ts', () => ({
 }));
 vi.mock('../../client/src/lib/usePersistentRange.ts', () => ({
   usePersistentRange: () => [{ preset: 'All' }, vi.fn()],
-  usePersistent: () => [['OLD', 'NEW', 'VT'], state.setHidden],
+  usePersistent: (key: string, initial: unknown) => (key === 'performance:hiddenSeries' ? [['OLD', 'NEW', 'VT'], state.setHidden] : [initial, vi.fn()]),
 }));
 vi.mock('../../client/src/components/CustomBenchmark.tsx', () => ({
   CustomBenchmark: (props: { onChanged: (ticker: string | null) => void }) => {
@@ -29,11 +29,19 @@ vi.mock('../../client/src/components/CustomBenchmark.tsx', () => ({
   },
 }));
 vi.mock('../../client/src/components/charts.tsx', () => ({
-  axisMoney: vi.fn(), Legend: () => null, LineChartFrame: () => null, Sparkline: () => null,
+  axisMoney: vi.fn(), axisPct: vi.fn(), Legend: () => null, LineChartFrame: () => null, Sparkline: () => null, GainBar: () => null,
   useChartColors: () => ({ s1: '', s2: '', s3: '', s4: '', muted: '' }),
 }));
 
-const render = () => renderToStaticMarkup(createElement(MemoryRouter, null, createElement(Performance)));
+// The area fetches once and the sub-pages read it through the router outlet.
+const render = (path = '/performance') =>
+  renderToStaticMarkup(
+    createElement(MemoryRouter, { initialEntries: [path] },
+      createElement(Routes, null,
+        createElement(Route, { path: '/performance', element: createElement(PerformanceArea) },
+          createElement(Route, { index: true, element: createElement(Returns) }),
+          createElement(Route, { path: 'holdings', element: createElement(PerformanceHoldings) }),
+          createElement(Route, { path: 'money', element: createElement(MoneyAddedPage) })))));
 beforeAll(async () => {
   const { seed, call } = testApp();
   await seed();
@@ -43,8 +51,8 @@ beforeAll(async () => {
 
 describe('performance interactions', () => {
   it('shows the money-added section and distinguishes growth from cost basis', () => {
-    const html = render();
-    expect(html).toContain('Money added over time');
+    const html = render('/performance/money');
+    expect(html).toContain('Money added');
     expect(html).toContain('Net money added');
     expect(html).toContain('Growth');
     expect(html).toContain('Reinvested dividends are excluded');
@@ -72,7 +80,7 @@ describe('performance interactions', () => {
       { ...original[0], ticker: 'MISSING', aheadOfSpy: null },
     ];
     try {
-      const html = render();
+      const html = render('/performance/holdings');
       const start = html.indexOf('Contribution by position</caption>');
       const footer = html.slice(html.indexOf('<tfoot', start), html.indexOf('</tfoot>', start));
       expect(footer).toContain('+$1,200.00');
@@ -90,7 +98,7 @@ describe('performance interactions', () => {
       ...r, aheadOfSpy: i < available ? 100 : null,
     }));
     try {
-      const html = render();
+      const html = render('/performance/holdings');
       const start = html.indexOf('Contribution by position</caption>');
       const footer = html.slice(html.indexOf('<tfoot', start), html.indexOf('</tfoot>', start));
       if (available) expect(footer).toContain('+$200.00');

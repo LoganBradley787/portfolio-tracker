@@ -1,46 +1,19 @@
-import { useEffect, useState } from 'react';
+// The top bar: wordmark, the five areas, then the two global lenses (accounts
+// and cost method), the price status and Refresh. One hairline under it.
 import { NavLink } from 'react-router-dom';
 import { when } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
+import { useMethod, type Method } from '../lib/method.tsx';
 import { Button } from './ui.tsx';
 import { useAccount } from '../lib/account.tsx';
 
-const PAGES = [
-  { path: '/', label: 'Overview' },
-  { path: '/performance', label: 'Performance' },
-  { path: '/exposure', label: 'Exposure' },
-  { path: '/outlook', label: 'Outlook' },
-  { path: '/realized', label: 'Realized' },
-  { path: '/transactions', label: 'Transactions' },
-  { path: '/health', label: 'Data health' },
+export const AREAS = [
+  { path: '/', label: 'Holdings', match: ['/', '/allocation', '/exposure', '/fees'] },
+  { path: '/performance', label: 'Performance', match: ['/performance'] },
+  { path: '/activity', label: 'Activity', match: ['/activity'] },
+  { path: '/outlook', label: 'Outlook', match: ['/outlook'] },
+  { path: '/data', label: 'Data', match: ['/data'] },
 ];
-
-function ThemeToggle() {
-  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme ?? 'light');
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem('theme', theme);
-    } catch {
-      /* private mode: theme just won't persist */
-    }
-  }, [theme]);
-  const next = theme === 'dark' ? 'light' : 'dark';
-  return (
-    <Button variant="ghost" size="sm" onClick={() => setTheme(next)} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`}>
-      {theme === 'dark' ? (
-        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="8" cy="8" r="3" />
-          <path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" strokeLinecap="round" />
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z" strokeLinejoin="round" />
-        </svg>
-      )}
-    </Button>
-  );
-}
 
 export function RefreshStatusLine() {
   const { info } = useRefresh();
@@ -50,15 +23,15 @@ export function RefreshStatusLine() {
   if (s.state === 'running') {
     return (
       <span className="num inline-flex items-center gap-2 text-muted" role="status">
-        <span className="relative h-1 w-16 overflow-hidden rounded-full bg-surface-2">
-          <span className="absolute inset-y-0 left-0 rounded-full bg-accent transition-[width] duration-300" style={{ width: `${s.total ? (s.done / s.total) * 100 : 5}%` }} />
+        <span className="relative h-0.5 w-14 overflow-hidden rounded-full bg-rule">
+          <span className="absolute inset-y-0 left-0 bg-accent transition-[width] duration-300" style={{ width: `${s.total ? (s.done / s.total) * 100 : 5}%` }} />
         </span>
         Fetching {s.done + 1 > s.total ? s.total : s.done + 1} of {s.total}
         {s.current && s.current !== 'quotes' ? ` · ${s.current}` : ''}
       </span>
     );
   }
-  if (s.error) return <span className="text-loss">Refresh failed · showing saved prices</span>;
+  if (s.error) return <span className="text-loss">Refresh failed · saved prices</span>;
   if (s.resumesAt && s.pending.length) {
     return (
       <span className="text-warn">
@@ -68,18 +41,18 @@ export function RefreshStatusLine() {
   }
   return (
     <span className="text-muted">
-      {s.lastSuccessAt ? `Updated ${when(s.lastSuccessAt)}` : info.pricesThrough ? `Prices through ${when(info.pricesThrough)}` : 'No prices yet'}
+      {s.lastSuccessAt ? `Prices ${when(s.lastSuccessAt)}` : info.pricesThrough ? `Prices through ${when(info.pricesThrough)}` : 'No prices yet'}
     </span>
   );
 }
 
-/** One on/off button per account; any mix can be on, and the last one on stays on. */
+/** One on/off chip per account; any mix can be on, and the last one on stays on. */
 function AccountPicker() {
   const { selected, accounts, isOn, toggle, showAll } = useAccount();
   if (accounts.length < 2) return null;
   return (
-    <span className="inline-flex items-center gap-2">
-      <div role="group" aria-label="Accounts shown" className="inline-flex rounded-md border border-rule-strong bg-surface p-0.5">
+    <span className="inline-flex items-center gap-1.5">
+      <div role="group" aria-label="Accounts shown" className="inline-flex items-center gap-px">
         {accounts.map((a) => {
           const on = isOn(a);
           const last = on && selected?.length === 1;
@@ -90,7 +63,7 @@ function AccountPicker() {
               aria-pressed={on}
               title={last ? 'The only account shown; turn another on first' : on ? `Hide ${a || '(none)'}` : `Show ${a || '(none)'}`}
               onClick={() => toggle(a)}
-              className={`h-7 rounded px-2.5 text-xs font-medium transition-colors duration-150 ${on ? 'bg-accent-soft text-accent' : 'text-muted line-through hover:text-ink'}`}
+              className={`h-6 rounded-sm px-2 text-xs font-medium transition-colors duration-150 ${on ? 'bg-ink/[0.07] text-ink' : 'text-faint line-through decoration-faint/70 hover:text-muted'}`}
             >
               {a || '(none)'}
             </button>
@@ -99,10 +72,36 @@ function AccountPicker() {
       </div>
       {selected !== null && (
         <button type="button" onClick={showAll} className="text-xs font-medium text-accent hover:underline">
-          Show all
+          All
         </button>
       )}
     </span>
+  );
+}
+
+/** Average cost or FIFO: it changes every cost and gain figure, so it lives beside the accounts. */
+function MethodPicker() {
+  const { method, setMethod } = useMethod();
+  const options: { value: Method; label: string; title: string }[] = [
+    { value: 'average', label: 'Avg cost', title: 'Average cost: each ticker’s purchases pooled, as the spreadsheet does' },
+    { value: 'fifo', label: 'FIFO', title: 'FIFO: each purchase is its own lot; the oldest in an account sells first' },
+  ];
+  return (
+    <div role="radiogroup" aria-label="Cost basis method" className="inline-flex items-center gap-px">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={method === o.value}
+          title={o.title}
+          onClick={() => setMethod(o.value)}
+          className={`h-6 rounded-sm px-2 text-xs font-medium transition-colors duration-150 ${method === o.value ? 'bg-ink/[0.07] text-ink' : 'text-faint hover:text-muted'}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -110,48 +109,38 @@ export function Header() {
   const { info, refresh } = useRefresh();
   const running = info?.status.state === 'running';
   return (
-    <header className="sticky top-0 z-20 border-b border-rule bg-bg/90 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-[1320px] flex-wrap items-center gap-x-6 gap-y-1 px-4 sm:px-6">
-        <span className="py-3 text-[15px] font-semibold tracking-tight text-ink">Portfolio</span>
-        <nav aria-label="Pages" className="order-last flex w-full overflow-x-auto md:order-none md:w-auto md:gap-1">
-          {PAGES.map((p) => (
+    <header className="border-b border-rule-strong/50 bg-bg">
+      <div className="mx-auto flex max-w-[1320px] flex-wrap items-center gap-x-7 gap-y-1 px-5 sm:px-8">
+        <NavLink to="/" className="py-3.5 text-[15px] font-semibold tracking-tight text-ink">
+          Portfolio
+        </NavLink>
+        <nav aria-label="Areas" className="order-last flex w-full gap-5 overflow-x-auto md:order-none md:w-auto">
+          {AREAS.map((a) => (
             <NavLink
-              key={p.path}
-              to={p.path}
-              end
+              key={a.path}
+              to={a.path}
+              end={a.path === '/'}
               className={({ isActive }) =>
-                `relative px-1.5 py-3 text-[13px] sm:px-2 font-medium whitespace-nowrap transition-colors duration-150 ${
-                  isActive ? 'text-ink after:absolute after:inset-x-1.5 sm:after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-accent' : 'text-muted hover:text-ink'
+                `relative py-3.5 text-[13px] font-medium whitespace-nowrap transition-colors duration-150 ${
+                  isActive ? 'text-ink after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-ink' : 'text-muted hover:text-ink'
                 }`
               }
             >
-              {p.label}
+              {a.label}
             </NavLink>
           ))}
         </nav>
-        <div className="ml-auto flex max-w-full flex-wrap items-center gap-3 text-xs">
+        <div className="ml-auto flex max-w-full flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <AccountPicker />
+          <MethodPicker />
           <span className="hidden sm:inline">
             <RefreshStatusLine />
           </span>
           {info?.hasKey && (
-            <Button size="sm" variant="secondary" onClick={() => void refresh()} busy={running}>
+            <Button size="sm" variant="ghost" onClick={() => void refresh()} busy={running} className="-mr-2">
               {running ? 'Refreshing…' : 'Refresh'}
             </Button>
           )}
-          <ThemeToggle />
-          <NavLink
-            to="/settings"
-            aria-label="Settings"
-            title="Settings"
-            className={({ isActive }) => `inline-flex size-7 items-center justify-center rounded-md hover:bg-surface-2 ${isActive ? 'text-ink' : 'text-muted hover:text-ink'}`}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <path d="M2 4.5h7M12.5 4.5H14M2 11.5h1.5M7 11.5h7" />
-              <circle cx="10.75" cy="4.5" r="1.75" />
-              <circle cx="5.25" cy="11.5" r="1.75" />
-            </svg>
-          </NavLink>
         </div>
       </div>
     </header>

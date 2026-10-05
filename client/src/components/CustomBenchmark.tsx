@@ -20,12 +20,12 @@ export function CustomBenchmark({ ticker, onChanged }: { ticker: string | null; 
     }
   };
   return (
-    <div className="mt-3 border-t border-rule pt-3">
+    <div className="mt-3">
       <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); void save(value.trim().toUpperCase()); }}>
         <label htmlFor="custom-benchmark" className="text-xs text-muted">Your benchmark</label>
         <input
           id="custom-benchmark"
-          className={`${inputClass} uppercase`}
+          className={`${inputClass} h-7 uppercase`}
           style={{ width: '7rem' }}
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -36,7 +36,7 @@ export function CustomBenchmark({ ticker, onChanged }: { ticker: string | null; 
         />
         <Button size="sm" type="submit" busy={busy} disabled={!value.trim() || value.trim().toUpperCase() === ticker}>Use ticker</Button>
         {ticker && <Button size="sm" disabled={busy} onClick={() => void save(null)}>Remove</Button>}
-        <span className="text-xs text-muted">Saved locally. Fetches history once, then refreshes within the shared request budget.</span>
+        <span className="text-xs text-faint">Adds one more line to the chart. Fetches history once, then refreshes within the shared request budget.</span>
       </form>
       {error && <p role="alert" className="mt-2 text-xs text-loss">{error}</p>}
     </div>

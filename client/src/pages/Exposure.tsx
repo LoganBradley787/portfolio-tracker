@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import type { ExposureRow } from '../../../src/engine/exposure.ts';
 import type { exposureView } from '../../../src/server/service.ts';
 import { Table, type Column, type SortState } from '../components/Table.tsx';
-import { Button, Empty, ErrorLine, inputClass, Notice, PageTitle, Section, Skeleton } from '../components/ui.tsx';
+import { Button, Empty, ErrorLine, inputClass, Note, Notice, PageHeader, Section, Skeleton, Stat, StatRow } from '../components/ui.tsx';
+import { PORTFOLIO_TABS } from '../lib/areas.ts';
 import { date, money, pct, when } from '../lib/format.ts';
 import { useApi } from '../lib/useApi.ts';
 
@@ -65,7 +66,18 @@ export default function Exposure() {
   const params = new URLSearchParams({ search: query, sort: sort.key, dir: sort.dir, offset: String(offset), limit: '20' });
   const { data, error, loading } = useApi<ExposureData>(`/api/exposure?${params}`);
 
-  if (!data) return error ? <ErrorLine error={error} /> : <Skeleton rows={8} />;
+  const header = (
+    <PageHeader
+      tabs={PORTFOLIO_TABS}
+      controls={
+        <input type="search" aria-label="Search companies" placeholder="Search company, ticker or identifier" value={query}
+          onChange={(e) => { setQuery(e.target.value); setOffset(0); }} className={`${inputClass} h-7 sm:w-72`} />
+      }
+    >
+      What you own directly and through ETFs, estimated using published fund weights.
+    </PageHeader>
+  );
+  if (!data) return <>{header}{error ? <ErrorLine error={error} /> : <Skeleton rows={8} />}</>;
   const supported = data.funds.filter((f) => f.supported);
   const columns: Column<ExposureRow>[] = [
     { key: 'name', label: 'Company / security', sortable: true, render: (r) => <Company row={r} /> },
@@ -94,43 +106,27 @@ export default function Exposure() {
   ];
   return (
     <div>
-      <PageTitle title="Underlying exposure">
-        What you own directly and through ETFs, estimated using published fund weights.
-      </PageTitle>
+      {header}
       <ErrorLine error={error} />
-      {!data.rowCount && !data.funds.length ? <Empty title="No holdings in these accounts">Add or import <Link to="/transactions" className="text-accent hover:underline">transactions</Link> to see exposure.</Empty> : (
+      {!data.rowCount && !data.funds.length ? <Empty title="No holdings in these accounts">Add or import <Link to="/activity/transactions" className="text-accent hover:underline">transactions</Link> to see exposure.</Empty> : (
         <>
-          <div className="grid grid-cols-2 gap-y-4 border-y border-rule-strong py-4 lg:grid-cols-4 lg:divide-x lg:divide-rule">
-            {[
-              ['Portfolio value', money(data.totalValue), 'Selected accounts'],
-              ['Mapped exposure', money(data.mappedValue), `${pct(data.coverage, { signed: false })} of portfolio`],
-              ['Other / unallocated', money(data.otherValue), 'Non-equity and unpublished weights'],
-              ['Unexpanded funds', money(data.unexpandedValue), 'Unsupported or unavailable holdings'],
-            ].map(([label, value, note], i) => (
-              <div key={label} className={i ? 'lg:pl-5' : ''}>
-                <p className="text-xs text-muted">{label}</p>
-                <p className="num mt-1 text-[26px] font-semibold tracking-tight">{value}</p>
-                <p className="mt-1 text-xs text-muted">{note}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 space-y-3">
+          <StatRow cols={4}>
+            <Stat label="Portfolio value" value={money(data.totalValue)} sub="selected accounts" />
+            <Stat label="Mapped exposure" value={money(data.mappedValue)} sub={`${pct(data.coverage, { signed: false })} of portfolio`} />
+            <Stat label="Other / unallocated" value={money(data.otherValue)} sub="non-equity and unpublished weights" />
+            <Stat label="Unexpanded funds" value={money(data.unexpandedValue)} sub="unsupported or unavailable holdings" />
+          </StatRow>
+          <div className="mt-4 space-y-2 empty:hidden">
             {data.holdingsRefresh.state === 'running' && <Notice tone="info" title="Checking fund holdings">Saved exposure stays visible while newer holdings are checked.</Notice>}
             {data.valuationWarnings.length > 0 && <Notice title="Some position values need a look">
-              {data.valuationWarnings.map((w) => w.ticker).join(', ')} use pending, missing, or unresolved prices. Exposure uses those same estimates. <Link to="/health" className="text-accent hover:underline">Data health</Link>
+              {data.valuationWarnings.map((w) => w.ticker).join(', ')} use pending, missing, or unresolved prices. Exposure uses those same estimates. <Link to="/data/health" className="text-accent hover:underline">Data health</Link>
             </Notice>}
             {data.roundingExcessValue > 0 && <Notice tone="info" title="Published weights exceed 100%">
               Rounded fund weights add {money(data.roundingExcessValue)} above portfolio value. Published weights are preserved.
             </Notice>}
-            {data.oversells.length > 0 && <Notice title="Sales exceed recorded shares">Exposure uses the remaining shares after clamping those sales. Check <Link to="/health" className="text-accent hover:underline">Data health</Link>.</Notice>}
+            {data.oversells.length > 0 && <Notice title="Sales exceed recorded shares">Exposure uses the remaining shares after clamping those sales. Check <Link to="/data/health" className="text-accent hover:underline">Data health</Link>.</Notice>}
           </div>
-          <Section title="Companies and securities" count={data.rowCount} aside={
-            <input type="search" aria-label="Search companies" placeholder="Search company, ticker or identifier" value={query}
-              onChange={(e) => { setQuery(e.target.value); setOffset(0); }} className={`${inputClass} sm:w-80`} />
-          }>
-            <p className="mb-3 max-w-prose text-[13px] text-muted">
-              Confirmed Alphabet and Berkshire share classes are combined. Fund securities match by CUSIP or SEDOL; direct positions prefer US tickers, then unique tickers from other countries. Other share classes and international listings may remain separate. Expand a name for contributions.
-            </p>
+          <Section title="Companies and securities" count={data.rowCount}>
             {data.rows.length ? (
               <Table rows={data.rows} columns={columns} rowKey={(r) => r.id} sort={sort} onSort={(next) => { setSort(next); setOffset(0); }} caption="Direct and ETF exposure" />
             ) : <Empty title={query ? 'No matching companies' : 'No underlying holdings available'}>{query ? 'Try a company name, ticker or security identifier.' : 'Supported fund holdings will appear automatically after a successful fetch.'}</Empty>}
@@ -143,12 +139,15 @@ export default function Exposure() {
               </div>
             </div>
             {data.valuationWarnings.length > 0 && <p className="mt-2 text-xs text-warn">† Includes a position with a valuation warning.</p>}
+            <Note>
+              Confirmed Alphabet and Berkshire share classes are combined. Fund securities match by CUSIP or SEDOL; direct positions prefer US tickers, then unique tickers from other countries. Other share classes and international listings may remain separate. Expand a name for contributions.
+            </Note>
           </Section>
           {data.funds.length > 0 && <Section title="Fund coverage" count={data.funds.length}>
             <Table rows={data.funds} columns={fundColumns} rowKey={(f) => f.ticker} caption="ETF holdings sources and coverage" />
-            <p className="mt-3 max-w-prose text-xs leading-relaxed text-muted">
+            <Note>
               Full equity holdings are used, with checks for newer snapshots once a week while the app runs. These are estimates at current position values, not live constituent weights or historical exposure. Known weights are never scaled to 100%; reserves and unpublished weights stay unallocated.
-            </p>
+            </Note>
           </Section>}
         </>
       )}
