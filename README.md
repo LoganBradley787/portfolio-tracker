@@ -4,6 +4,10 @@ A local, single-user replacement for the Google Sheets stock tracker. It keeps y
 
 Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and to Yahoo Finance the ticker of each stock without a sector and of each ETF you hold (for its sector breakdown and expense ratio). Portfolio amounts, share counts, and exposure calculations stay on your machine.
 
+![Overview: totals, the value chart, what moved, holdings and sector allocation](assets/screenshots/overview.png)
+
+The screenshots here show the invented sample portfolio in `tests/fixtures/sample/`, running on the demo server described below.
+
 ## Run it
 
 Requires Node 20 or newer.
@@ -74,6 +78,12 @@ The app notices the file within a few seconds while it is running, or at the nex
 - **Data health**: refresh status and request budget, tickers with no data (set a provider symbol), the split cross-check, oversells, trades more than 20% from that day's close, price gaps, and the sheet's own benchmark method as a check figure.
 - **Securities** (from Data health): name, sector, asset type and provider symbol for each ticker.
 - **Ticker detail** (click a ticker in a table): split-adjusted price chart with buy/sell markers, entered transactions, realized sales, dividends, splits and remaining FIFO lots. The header's account selection and the cost method from Settings apply here too. The position and lots are shown at the range end; event tables cover the selected range. Under average cost, switch to FIFO to inspect individual lots.
+
+| Performance | Outlook |
+| --- | --- |
+| ![Performance: returns against SPY and QQQ, and stocks versus ETFs](assets/screenshots/performance.png) | ![Outlook: the range of possible future values](assets/screenshots/outlook.png) |
+
+![Ticker detail: the position, a sale preview and the price chart with trade markers](assets/screenshots/ticker.png)
 
 ### What moved
 
