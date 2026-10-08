@@ -329,7 +329,7 @@ function dayEvents(state: State, series: DayPoint[], from: string, to: string): 
   return [...days.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
 }
 
-/** The portfolio's gain over the last day, week and month, holding by holding. */
+/** The portfolio's gain over the last day, week, month, year and all time, holding by holding. */
 export function moversView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[] }) {
   const state = loadState(ctx, opts.accounts);
   const today = ctx.today();
@@ -342,7 +342,7 @@ export function moversView(ctx: AppContext, opts: { method: CostMethod; accounts
       if (date && date <= today && (!asOf || date > asOf)) asOf = date;
     }
   }
-  const periods: MovePeriod[] = ['day', 'week', 'month'];
+  const periods: MovePeriod[] = ['day', 'week', 'month', 'year', 'all'];
   return {
     today,
     asOf,

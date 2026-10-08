@@ -69,10 +69,10 @@ export function Table<T>({
     else setOwnSort(next);
   };
 
-  const pad = dense ? 'px-2 py-1' : 'px-2.5 py-[7px]';
+  const pad = dense ? 'px-2 py-1' : 'px-2.5 py-2';
   return (
     <div className="relative overflow-x-auto">
-      <table className="w-full border-collapse text-[13px]">
+      <table className="w-full border-collapse text-[14px]">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead>
           <tr className="border-b border-rule-strong/70">
@@ -83,7 +83,7 @@ export function Table<T>({
                   key={c.key}
                   scope="col"
                   aria-sort={active ? (sort!.dir === 'asc' ? 'ascending' : 'descending') : undefined}
-                  className={`px-2.5 pt-1 pb-1.5 text-xs font-medium whitespace-nowrap text-muted first:pl-0 last:pr-0 ${c.numeric ? 'text-right' : 'text-left'} ${c.className ?? ''}`}
+                  className={`px-2.5 pt-1 pb-2 text-[13px] font-semibold whitespace-nowrap text-muted first:pl-0 last:pr-0 ${c.numeric ? 'text-right' : 'text-left'} ${c.className ?? ''}`}
                 >
                   {c.sort || c.sortable ? (
                     <button
@@ -117,7 +117,7 @@ export function Table<T>({
         </tbody>
         {showTotals && (
           <tfoot>
-            <tr className="ledger-total font-medium">
+            <tr className="ledger-total font-semibold">
               {columns.map((c) => (
                 <td key={c.key} className={`px-2.5 py-2 first:pl-0 last:pr-0 ${c.numeric ? 'num text-right' : ''} ${c.className ?? ''}`}>
                   {c.total}

@@ -109,7 +109,7 @@ describe('What moved', () => {
     const html = text(render(WhatMoved));
     const day = state.movers.periods.day;
     expect(html).toContain('What moved');
-    expect(html).toContain('Oct 2, 2026:');
+    expect(html).toContain('Oct 2, 2026');
     expect(html.indexOf(day.movers[0].ticker)).toBeLessThan(html.indexOf(day.movers.at(-1).ticker));
     expect(html).not.toContain('Show all');
     state.saved.movers = 'month';

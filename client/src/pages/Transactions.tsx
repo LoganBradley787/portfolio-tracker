@@ -4,7 +4,7 @@ import type { Transaction } from '../../../src/engine/types.ts';
 import type { ImportResult } from '../../../src/import/parse.ts';
 import { Table, type Column } from '../components/Table.tsx';
 import { Button, Empty, ErrorLine, Field, inputClass, Notice, PageHeader, Segmented, Skeleton } from '../components/ui.tsx';
-import { ACTIVITY_TABS } from '../lib/areas.ts';
+import { DATA_TABS } from '../lib/areas.ts';
 import { api, ApiError } from '../lib/api.ts';
 import { date, money, shares } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
@@ -53,13 +53,13 @@ export default function Transactions() {
   return (
     <div>
       <PageHeader
-        tabs={ACTIVITY_TABS}
+        tabs={DATA_TABS}
         controls={
           <>
             <a
               href="/api/export.csv"
               download
-              className="inline-flex h-7 items-center rounded border border-rule-strong/70 bg-surface px-2 text-xs font-medium text-ink hover:bg-surface-2/60"
+              className="inline-flex h-7 items-center rounded border border-rule-strong/70 bg-surface px-2 text-[13px] font-medium text-ink hover:bg-surface-2/60"
             >
               Export CSV
             </a>
@@ -116,7 +116,7 @@ export default function Transactions() {
       ) : (
         <>
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            <p className="tnum text-xs text-muted">
+            <p className="tnum text-[13px] text-muted">
               {rows.length === data.transactions.length ? `${rows.length} transactions` : `${rows.length} of ${data.transactions.length} transactions`}
             </p>
           </div>
@@ -170,7 +170,7 @@ function TransactionTable({
       render: (t) => (
         <span className="whitespace-nowrap">
           <TickerLink ticker={t.ticker} />
-          {t.assetType === 'ETF' && <span className="ml-1.5 text-[11px] text-muted">ETF</span>}
+          {t.assetType === 'ETF' && <span className="ml-1.5 text-[12px] font-medium text-muted">ETF</span>}
         </span>
       ),
     },
@@ -309,7 +309,7 @@ function TransactionForm({
         </ul>
       )}
       <div className="mt-4 flex items-center justify-between gap-3">
-        <p className="tnum text-xs text-muted">{Number.isFinite(amount) && amount > 0 ? `Amount ${money(amount)}` : 'Enter shares and price as traded on that date.'}</p>
+        <p className="tnum text-[13px] text-muted">{Number.isFinite(amount) && amount > 0 ? `Amount ${money(amount)}` : 'Enter shares and price as traded on that date.'}</p>
         <Button type="submit" variant="primary" busy={busy}>
           {editing ? 'Save changes' : 'Add transaction'}
         </Button>
@@ -384,7 +384,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
         Broker files can also be saved into the drop folder and are imported without coming here; Data → Drop folder shows where it is.
       </p>
       <textarea
-        className={`${inputClass} h-36 resize-y py-2 font-mono text-xs leading-5`}
+        className={`${inputClass} h-36 resize-y py-2 font-mono text-[13px] leading-5`}
         placeholder={'Ticker\tAsset Type\tType\tShares\tSplit (n to 1)\tAvg Price\tDate\tAccount\nDIS\tStock\tBuy\t30\t\t111.46\t3/10/2020\tMain'}
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -424,7 +424,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
                     </datalist>
                   </Field>
                   {preview.range && (
-                    <p className="pb-2 text-xs text-muted">
+                    <p className="pb-2 text-[13px] text-muted">
                       Schwab export covering {date(preview.range.from)} to {date(preview.range.to)}.
                     </p>
                   )}
@@ -449,7 +449,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
                 </Notice>
               )}
               <div className="mt-3 max-h-72 overflow-auto border-y border-rule">
-                <table className="w-full text-xs">
+                <table className="w-full text-[13px]">
                   <thead className="sticky top-0 bg-surface text-muted">
                     <tr>
                       {['Row', 'Date', 'Ticker', 'Type', 'Shares', 'Price', 'Account'].map((h, i) => (
@@ -491,12 +491,12 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
                     ))}
                   </tbody>
                 </table>
-                {preview.rows.length > 200 && <p className="px-2 py-1.5 text-xs text-muted">Showing the first 200 rows.</p>}
+                {preview.rows.length > 200 && <p className="px-2 py-1.5 text-[13px] text-muted">Showing the first 200 rows.</p>}
               </div>
             </>
           )}
           {(preview.skipped?.length ?? 0) > 0 && (
-            <details className="mt-2 text-xs text-muted">
+            <details className="mt-2 text-[13px] text-muted">
               <summary className="cursor-pointer hover:text-ink">Skipped rows</summary>
               <ul className="mt-1 space-y-0.5">
                 {preview.skipped!.map((s) => (
@@ -510,7 +510,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               {broker ? (
-                <span className="text-xs text-muted">Adds these to your transactions. Trades already in the app are skipped, so a file can be imported again.</span>
+                <span className="text-[13px] text-muted">Adds these to your transactions. Trades already in the app are skipped, so a file can be imported again.</span>
               ) : (
                 <>
                   <Segmented
@@ -522,7 +522,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
                       { value: 'append', label: 'Append' },
                     ]}
                   />
-                  <span className="text-xs text-muted">
+                  <span className="text-[13px] text-muted">
                     {mode === 'replace'
                       ? hasRows
                         ? 'Deletes current transactions first. A backup of the database is saved.'

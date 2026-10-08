@@ -4,7 +4,7 @@ import { addDays } from './dates.ts';
 import { contribution, investedMask, twrIndex } from './returns.ts';
 import type { DayPoint } from './series.ts';
 
-export type MovePeriod = 'day' | 'week' | 'month';
+export type MovePeriod = 'day' | 'week' | 'month' | 'year' | 'all';
 
 export interface Mover {
   ticker: string;
@@ -29,24 +29,30 @@ export interface Movement {
   incomplete: boolean;
 }
 
-/** The same day one month earlier (clamped to the month's length). */
-function monthBefore(date: string): string {
+/** The same day `months` earlier (clamped to that month's length). */
+function monthsBefore(date: string, months: number): string {
   const y = Number(date.slice(0, 4));
   const m = Number(date.slice(5, 7)) - 1;
   const day = Number(date.slice(8, 10));
-  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  return new Date(Date.UTC(y, m - 1, Math.min(day, last))).toISOString().slice(0, 10);
+  const last = new Date(Date.UTC(y, m - months + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(y, m - months, Math.min(day, last))).toISOString().slice(0, 10);
 }
 
 /**
  * Movement over the period ending at `to` (the last day prices changed).
  * A day is that one trading day; a week is the seven calendar days ending
- * there; a month starts the day after the same date a month earlier.
+ * there; a month (or a year) starts the day after the same date a month (a
+ * year) earlier; all time starts on the first day of the series.
  */
 export function movement(series: DayPoint[], to: string, period: MovePeriod): Movement | null {
   const end = series.filter((p) => p.date <= to).at(-1);
   if (!end) return null;
-  const from = period === 'day' ? end.date : period === 'week' ? addDays(end.date, -6) : addDays(monthBefore(end.date), 1);
+  const from =
+    period === 'day' ? end.date
+    : period === 'week' ? addDays(end.date, -6)
+    : period === 'month' ? addDays(monthsBefore(end.date, 1), 1)
+    : period === 'year' ? addDays(monthsBefore(end.date, 12), 1)
+    : series[0].date;
   const rows = contribution(series, from, end.date);
   const index = twrIndex(series, from, end.date);
   const invested = investedMask(series).some((v, i) => v && series[i].date >= from && series[i].date <= end.date);

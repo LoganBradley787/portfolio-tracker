@@ -55,8 +55,8 @@ describe('performance interactions', () => {
     expect(html).toContain('Money added');
     expect(html).toContain('Net money added');
     expect(html).toContain('Growth');
-    expect(html).toContain('Reinvested dividends are excluded');
-    expect(html).toContain('All history through today');
+    expect(html).toContain('Reinvested dividends are not buys');
+    expect(html).toContain('This is not remaining cost basis');
   });
 
   it('unhides the saved benchmark rather than the stale configured ticker', () => {
@@ -110,4 +110,18 @@ describe('performance interactions', () => {
     }
   });
 
+});
+
+describe('benchmark months', () => {
+  it('turns a daily total-return index into calendar-month returns, chained from the month before', async () => {
+    const { benchmarkMonths } = await import('../../client/src/pages/Performance.tsx');
+    const day = (date: string, pct: number | null) => ({ date, benchmarks: { SPY: { pct } } });
+    const months = benchmarkMonths(
+      [day('2026-01-02', 0), day('2026-01-30', 0.1), day('2026-02-02', 0.1), day('2026-02-27', 0.21), day('2026-03-02', null), day('2026-03-31', 0.3)],
+      'SPY',
+    );
+    expect(months.get('2026-01')).toBeCloseTo(0.1);
+    expect(months.get('2026-02')).toBeCloseTo(1.21 / 1.1 - 1);
+    expect(months.get('2026-03')).toBeNull();
+  });
 });

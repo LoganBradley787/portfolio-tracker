@@ -7,7 +7,7 @@ export function RangeSelector({ value, onChange, min, max, compact }: { value: R
     <div className="flex flex-wrap items-center gap-2">
       <Segmented<Preset> label="Date range" value={value.preset} onChange={(p) => onChange({ ...value, preset: p })} options={presets.map((p) => ({ value: p, label: p }))} />
       {value.preset === 'Custom' && (
-        <span className="flex items-center gap-1.5 text-xs text-muted">
+        <span className="flex items-center gap-1.5 text-[13px] text-muted">
           <input
             type="date"
             aria-label="From"

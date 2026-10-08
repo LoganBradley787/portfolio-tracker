@@ -18,51 +18,56 @@ function wash(r: number | null | undefined): string {
   return r > 0 ? 'bg-gain-soft' : 'bg-loss-soft';
 }
 
-export function MonthlyReturns({ months }: { months: MonthReturn[] }) {
+/**
+ * A year-by-month grid of returns. With `compare`, each cell is the month's
+ * return minus the benchmark's return for that month (null where unknown).
+ */
+export function MonthlyReturns({ months, compare }: { months: MonthReturn[]; compare?: Map<string, number | null> }) {
   const years = [...new Set(months.map((m) => m.month.slice(0, 4)))].reverse();
   const byMonth = new Map(months.map((m) => [m.month, m]));
+  const cell = (m: MonthReturn | undefined): number | null | undefined => {
+    if (!m || m.return == null) return m?.return;
+    if (!compare) return m.return;
+    const b = compare.get(m.month);
+    return b == null ? null : m.return - b;
+  };
   return (
-    <>
-      <div className="overflow-x-auto">
-        <table className="w-full text-[13px]">
-          <caption className="sr-only">Monthly time-weighted returns within the selected range</caption>
-          <thead>
-            <tr className="border-b border-rule-strong/70 text-muted">
-              <th scope="col" className="px-2 pt-1 pb-1.5 text-left text-xs font-medium">Year</th>
-              {MONTHS.map((m) => (
-                <th key={m} scope="col" className="px-2 pt-1 pb-1.5 text-right text-xs font-medium">{m}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {years.map((year) => (
-              <tr key={year} className="border-b border-rule last:border-0">
-                <th scope="row" className="num px-2 py-2.5 text-left font-medium">{year}</th>
-                {MONTHS.map((name, i) => {
-                  const m = byMonth.get(`${year}-${String(i + 1).padStart(2, '0')}`);
-                  const description = describe(m);
-                  const value = m?.return == null ? 'unavailable' : pct(m.return);
-                  return (
-                    <td
-                      key={name}
-                      title={description}
-                      aria-label={`${name} ${year}: ${value}. ${description}`}
-                      className={`num px-2 py-2.5 text-right ${tone(m?.return)} ${wash(m?.return)}`}
-                    >
-                      {pct(m?.return)}
-                      {m?.partial && <span className="text-muted">*</span>}
-                    </td>
-                  );
-                })}
-              </tr>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[14px]">
+        <caption className="sr-only">{compare ? 'Monthly return against the benchmark' : 'Monthly time-weighted returns within the selected range'}</caption>
+        <thead>
+          <tr className="border-b border-rule-strong/70 text-muted">
+            <th scope="col" className="px-2 pt-1 pb-2 text-left text-[13px] font-semibold">Year</th>
+            {MONTHS.map((m) => (
+              <th key={m} scope="col" className="px-2 pt-1 pb-2 text-right text-[13px] font-semibold">{m}</th>
             ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-2 max-w-prose text-xs leading-relaxed text-muted">
-        Compounded daily time-weighted returns, including dividends. * Partial month within the selected range or since the first trade.
-        Missing prices and months without invested days show a dash.
-      </p>
-    </>
+          </tr>
+        </thead>
+        <tbody>
+          {years.map((year) => (
+            <tr key={year} className="border-b border-rule last:border-0">
+              <th scope="row" className="num px-2 py-3 text-left font-semibold">{year}</th>
+              {MONTHS.map((name, i) => {
+                const m = byMonth.get(`${year}-${String(i + 1).padStart(2, '0')}`);
+                const v = cell(m);
+                const description = describe(m);
+                const value = v == null ? 'unavailable' : pct(v);
+                return (
+                  <td
+                    key={name}
+                    title={description}
+                    aria-label={`${name} ${year}: ${value}. ${description}`}
+                    className={`num px-2 py-3 text-right font-medium ${tone(v)} ${wash(v)}`}
+                  >
+                    {pct(v)}
+                    {m?.partial && <span className="text-muted">*</span>}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

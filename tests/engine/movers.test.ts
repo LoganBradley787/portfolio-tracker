@@ -45,6 +45,16 @@ describe('what moved', () => {
     expect(month.returnPct).toBeCloseTo(70 / 1520);
   });
 
+  it('covers a year for a year and everything since the first day for all time', () => {
+    const year = movement(s, '2025-10-02', 'year')!;
+    expect(year.from).toBe('2025-09-01');
+    expect(year.gain).toBeCloseTo(70);
+    const all = movement(s, '2025-10-02', 'all')!;
+    expect(all).toMatchObject({ from: '2025-09-01', to: '2025-10-02' });
+    expect(all.gain).toBeCloseTo(70);
+    expect(all.movers.map((m) => m.ticker)).toEqual(['UP', 'DOWN']);
+  });
+
   it('ends at the last day prices changed, not at a later carried-forward day', () => {
     const weekend = series([tx(1, 'UP', '2025-09-01', 'Buy', 10, 100)], { UP: flat(100, { '2025-10-02': 110 }) }, '2025-10-04');
     expect(movement(weekend, '2025-10-04', 'day')!.gain).toBe(0);

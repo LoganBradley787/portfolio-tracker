@@ -39,7 +39,7 @@ Tiingo's free tier allows 50 requests an hour; the app stops at 45. Opening the 
 ## Import from the sheet
 
 1. In Google Sheets, open the **Transactions** tab, select the whole table **including the header row**, and copy.
-2. In the app, go to **Activity → Transactions → Import** and paste. (Or choose a CSV export of that tab.)
+2. In the app, go to **Data → Transactions → Import** and paste. (Or choose a CSV export of that tab.)
 3. Check the preview. Every row must read cleanly; errors name the row number and the problem. Fix those in the sheet and paste again.
 4. Choose **Replace all** (default; your current data is backed up first) or **Append**, and confirm.
 
@@ -47,11 +47,11 @@ Columns are matched by header name: `Ticker`, `Asset Type`, `Type`, `Shares`, `S
 
 **Split rows are not applied.** Splits come from Tiingo. The sheet's split rows are kept aside and compared with Tiingo's on **Data → Health**. If Tiingo has no split within 5 trading days of one, an **Apply this split** button adds it by hand.
 
-**Export CSV** (Activity → Transactions) writes the same columns, so an export can be re-imported (or pasted back into the sheet).
+**Export CSV** (Data → Transactions) writes the same columns, so an export can be re-imported (or pasted back into the sheet).
 
 ## Import from a broker
 
-In **Activity → Transactions → Import**, choose a **Schwab JSON transaction export** or a **Robinhood account activity CSV**, enter the account it belongs to, and check the preview before pressing **Add**. Broker imports always append. Existing trades are matched by account, date, ticker, Buy/Sell, shares and price; repeated identical executions are matched one at a time, so re-importing a report adds only the missing occurrences.
+In **Data → Transactions → Import**, choose a **Schwab JSON transaction export** or a **Robinhood account activity CSV**, enter the account it belongs to, and check the preview before pressing **Add**. Broker imports always append. Existing trades are matched by account, date, ticker, Buy/Sell, shares and price; repeated identical executions are matched one at a time, so re-importing a report adds only the missing occurrences.
 
 Robinhood's [account activity report](https://robinhood.com/us/en/support/articles/reports-and-statements/) is supported, rather than its gains/losses report. The importer uses `Activity Date`, `Instrument`, `Trans Code`, `Quantity` and `Price`; it reads fractional shares, dollar prices and multiline descriptions. `Description` is also required to identify dividend reinvestments. Cash `Amount` is not used as the trade price.
 
@@ -69,31 +69,33 @@ The app notices the file within a few seconds while it is running, or at the nex
 
 ## Pages
 
-The top bar has five areas; each area has a row of tabs, and each tab is one page that answers one question. The account chips and the **Avg cost / FIFO** switch in the top bar apply to every figure in the app.
+The top bar has five areas; each area has a row of tabs, and each tab is one page that answers one question. The account chips in the top bar apply to every figure in the app; the gear opens **Settings**, where the cost basis method (average cost or FIFO) is chosen. Every explanation lives behind an (i) beside the figure or section it describes.
 
 - **Holdings**
-  - **Overview**: market value with today's move, a ruled row of cost, unrealized, realized, dividends and total return, the value chart with a date range and markers for buys, sells and splits (**Trades** turns them off; hovering a day names the tickers and any dividends), **What moved** beside it, and the holdings table (sortable; All / Stocks / ETFs). Banners for oversells, failed refreshes and holdings without a live price.
-  - **Allocation**: by sector (funds split into the sectors they hold, or kept as one group), asset type or position.
+  - **Overview**: market value with today's move, a ruled row of cost, unrealized, realized, dividends and total return, the value chart over a date range, **What moved** beside it (day, week, month, year or all time), and the holdings table (sortable; All / Stocks / ETFs). Banners for oversells, failed refreshes and holdings without a live price.
+  - **Chart**: the whole history, large. Drag across a stretch to zoom into it, step earlier or later, jump with the range buttons, and turn on buys, sells, splits, dividends (dots sized by the amount paid) and the money-invested line. Hovering a day names the tickers traded and any dividends; the data table is beneath.
+  - **Allocation**: a ring and a table by sector (funds split into the sectors they hold, or kept as one group), asset type or position.
   - **Exposure**: current direct ownership plus estimated underlying equity exposure through held VOO and VT. Sort by company/security, direct dollars, each fund's contribution, or total exposure; search the full holdings universe and expand a name for its breakdown. Percentages use the whole selected portfolio, including unexpanded funds.
-  - **Fees**: what the funds held cost each year, and over 10, 20 and 30 years.
-- **Performance** (one date range for the whole area)
-  - **Returns**: gain over the range, time-weighted return against SPY, QQQ and VT (total return, their dividends reinvested), money-weighted return (IRR), volatility, max drawdown; one chart that shows either the return lines or the drawdown; the same money in a benchmark; stocks versus ETFs; selected accounts side by side.
+- **Performance** (one date range for the whole area, and one chosen benchmark for every "vs" column)
+  - **Returns**: gain over the range, time-weighted return, the lead over the chosen benchmark, money-weighted return (IRR), volatility, max drawdown; one chart that shows the return lines in percent or as dollars (your money against the same money in each benchmark), or the drawdown of every line; the same money in a benchmark with your lead in dollars and percent; stocks versus ETFs and selected accounts side by side, each against the chosen benchmark.
   - **By holding**: what drove the gain (each position's contribution and its dollars ahead of or behind matched SPY trades), or each holding's own price change over the range.
-  - **By month**: the monthly return grid.
-  - **Money added**: value against money invested over the range, and buys, sells and net money added by year or month.
+  - **By month**: the monthly return grid, or each month's return minus the chosen benchmark's.
+  - **Money added**: value against money invested over the range, or the growth between them day by day, and buys, sells and net money added by year or month.
+- **Outlook**: a range of possible future values.
 - **Activity**
-  - **Transactions**: add, edit, delete, reorder same-day rows (order matters for average cost), import, export.
   - **Sales**: every sale with totals (All / Stocks / ETFs).
   - **Dividends**: the next twelve months estimated by holding, dividends received by year, and every dividend received (by ex-date) with the shares it bought.
   - **Taxes** (FIFO only): short- and long-term gains and dividends by tax year, the lots behind each year, and lots turning long-term in the next 60 days. Not tax advice; wash sales are ignored.
-- **Outlook**: a range of possible future values.
+  - **Fees**: what the funds held cost each year, and what that fee removes over 10, 20 and 30 years.
 - **Data**
-  - **Health**: refresh status and request budget, then a checklist. Each check is one line when it is clear and opens into its table when it is not: tickers with no data (set a provider symbol), the split cross-check, oversells, fund sector breakdowns, dividends not reinvested, trades more than 20% from that day's close, price gaps, and the sheet's own benchmark method as a check figure.
+  - **Transactions**: add, edit, delete, reorder same-day rows (order matters for average cost), import, export.
   - **Securities**: name, sector, asset type and provider symbol for each ticker.
+  - **Health**: refresh status and request budget, then a checklist. Each check is one line when it is clear and opens into its table when it is not: tickers with no data (set a provider symbol), the split cross-check, oversells, fund sector breakdowns, dividends not reinvested, trades more than 20% from that day's close, price gaps, and the sheet's own benchmark method as a check figure.
   - **Drop folder**: where it is, files it could not import, and the files it has handled.
+- **Settings** (the gear in the top bar): the cost basis method.
 - **Ticker detail** (click a ticker in a table): the position, a split-adjusted price chart with buy/sell markers, then tabs for entered transactions, remaining FIFO lots, realized sales, dividends and a sale preview. The position and lots are shown at the range end; event tables cover the selected range. Under average cost, switch to FIFO to inspect individual lots.
 
-The old page addresses (`/realized`, `/transactions`, `/health`, `/securities`, `/settings`) redirect to their new homes.
+The old page addresses (`/realized`, `/transactions`, `/activity/transactions`, `/fees`, `/health`, `/securities`) redirect to their new homes.
 
 | Performance | Outlook |
 | --- | --- |
@@ -103,13 +105,13 @@ The old page addresses (`/realized`, `/transactions`, `/health`, `/securities`, 
 
 ### What moved
 
-On the Overview, **What moved** lists each holding's dollar gain over the last day, week (seven calendar days) or month, biggest moves first. The figures use the same convention as the range gain, so they add up to it: dividends count, money added or taken out does not. The period ends on the last day a held ticker has a price, so on a weekend the "day" is Friday. A holding with no quote yet for that day shows no move for it, even while the holdings table's Today column still shows its previous session.
+On the Overview, **What moved** lists each holding's dollar gain over the last day, week (seven calendar days), month, year or all time, biggest moves first. The figures use the same convention as the range gain, so they add up to it: dividends count, money added or taken out does not. The period ends on the last day a held ticker has a price, so on a weekend the "day" is Friday. A holding with no quote yet for that day shows no move for it, even while the holdings table's Today column still shows its previous session.
 
 ### Outlook, dividends and fees
 
 - **Where this could go** runs 2,000 simulated paths from today's value of the selected accounts, adding a fixed amount each month, and shows the middle outcome with the bands that hold half and eight in ten of the outcomes. It is in today's dollars: returns are after inflation, averaging 3%, 5% (default) or 7% a year with a 16% yearly swing. The monthly amount defaults to your net money added per month over the last 12 complete months, and can be typed over. An optional target adds the year the middle outcome reaches it and the share of outcomes that get there. The same inputs always give the same figures. It is a range under stated assumptions, not a forecast; your actual holdings, taxes and fees are not modelled. Your choices are kept in the browser, not the database.
 - **Dividends** (under Activity) estimates the next twelve months by paying each holding's last twelve months of dividends per share (restated for splits) on the shares held today. It also guesses each next ex-date from the usual gap between payments, and lists dividends received by year. Cuts, rises and special dividends are not anticipated.
-- **Fees** (under Holdings) multiplies each held fund's expense ratio by its value. The ratio comes from Yahoo Finance in the same weekly request as the fund's sector breakdown, so it adds no requests; a fund Yahoo publishes no ratio for is listed and left out of the totals. The 10-, 20- and 30-year cost is how much smaller today's fund holdings end up with the fee taken yearly than without it, at 7% growth a year before fees. Money added later is not counted.
+- **Fees** (under Activity) multiplies each held fund's expense ratio by its value. The ratio comes from Yahoo Finance in the same weekly request as the fund's sector breakdown, so it adds no requests; a fund Yahoo publishes no ratio for is listed and left out of the totals. The 10-, 20- and 30-year cost is how much smaller today's fund holdings end up with the fee taken yearly than without it, at 7% growth a year before fees. Money added later is not counted.
 
 ### New comparisons
 
@@ -119,7 +121,7 @@ On the Overview, **What moved** lists each holding's dollar gain over the last d
 - **Accounts side by side** appears when more than one account is selected. Each account is replayed independently. Returns are not additive; average-cost basis is computed separately for each account, while the combined view pools basis across selected accounts.
 - **Your benchmark**, below the return chart on Performance → Returns, saves one additional ticker in the local database. It joins the standard benchmarks in the refresh queue and shares the existing request budget. Removing it stops benchmark refreshes (a ticker you hold still refreshes as a holding). Splits and dividends are included. A ticker whose history starts after your trades is omitted from the same-money comparison; choose a later chart range to compare its return line. Invalid or unresolved symbols are shown on Data → Health. Version 2 adds the saved selection table and a flag so a benchmark-only ticker takes its asset type from its first trade or manual edit, with the usual backup before migration.
 
-The **Avg cost / FIFO** switch in the top bar changes every figure between **Avg cost** (the sheet's method, pooled per ticker across accounts) and **FIFO** (lots kept per account and ticker).
+The cost basis setting (the gear in the top bar) changes every figure between **Avg cost** (the sheet's method, pooled per ticker across accounts) and **FIFO** (lots kept per account and ticker).
 
 ### Underlying ETF exposure
 

@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
-/* A statement, not a dashboard. Light only: a faint cool off-white page, white
-   surfaces where something is editable, hairline rules instead of boxes.
-   Near-black ink, one deep ink-blue accent for the current tab, actions and
-   selection. Green and red only ever mean gain and loss; amber means a figure
-   needs a look. */
+/* A statement, not a dashboard. Light only: a white page, hairline rules
+   instead of boxes, black ink set with weight. Secondary text is dark enough
+   to read at a glance; nothing is written to be skipped. One saturated blue
+   for the current tab, actions and selection. Green and red only ever mean
+   gain and loss; amber means a figure needs a look. */
 :root {
   color-scheme: light;
-  --bg: oklch(0.983 0.003 200);
+  --bg: oklch(1 0 0);
   --surface: oklch(1 0 0);
-  --surface-2: oklch(0.955 0.004 200);
-  --rule: oklch(0.90 0.006 220);
-  --rule-strong: oklch(0.72 0.012 240);
-  --ink: oklch(0.21 0.012 255);
-  --muted: oklch(0.50 0.014 255);
-  --faint: oklch(0.66 0.012 255);
-  --accent: oklch(0.40 0.11 262);
-  --accent-soft: oklch(0.945 0.025 262);
+  --surface-2: oklch(0.96 0.003 240);
+  --rule: oklch(0.90 0.005 240);
+  --rule-strong: oklch(0.70 0.01 240);
+  --ink: oklch(0.16 0.012 260);
+  --muted: oklch(0.40 0.014 260);
+  --faint: oklch(0.56 0.012 260);
+  --accent: oklch(0.46 0.17 262);
+  --accent-soft: oklch(0.94 0.03 262);
   --on-accent: oklch(0.99 0 0);
   --gain: oklch(0.50 0.125 155);
   --gain-soft: oklch(0.955 0.035 155);
@@ -25,7 +25,7 @@
   --warn: oklch(0.56 0.12 72);
   --warn-soft: oklch(0.955 0.045 85);
   /* Chart series: ink blue, ochre, plum, teal. */
-  --series-1: oklch(0.45 0.12 262);
+  --series-1: oklch(0.42 0.16 262);
   --series-2: oklch(0.66 0.13 70);
   --series-3: oklch(0.52 0.13 335);
   --series-4: oklch(0.56 0.10 190);
@@ -67,7 +67,7 @@ html {
 body {
   margin: 0;
   background: var(--bg);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
 }
 
@@ -82,12 +82,12 @@ body {
   white-space: nowrap;
 }
 
-/* The statement figure: large, light, tight. */
+/* The statement figure: large, heavy, tight. */
 .figure {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.03em;
   line-height: 1;
 }
 

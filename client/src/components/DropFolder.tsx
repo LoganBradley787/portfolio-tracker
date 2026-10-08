@@ -21,9 +21,9 @@ export function DropFolder({ inbox, onChanged }: { inbox: InboxStatus; onChanged
     <Section title="Where it is" aside={<Button size="sm" busy={busy} onClick={() => void check()}>Check now</Button>}>
       <p className="mb-6 max-w-prose text-[13px] text-muted">
         Save a Schwab JSON export or a Robinhood activity CSV into a folder named after its account inside{' '}
-        <code className="rounded bg-surface-2 px-1 py-0.5 font-mono text-xs text-ink">{inbox.dir}</code> (for example{' '}
-        <code className="font-mono text-xs">Taxable/activity.csv</code>). Trades the app does not have yet are added, the database is copied
-        to the backups folder first, and the file moves to that account’s <code className="font-mono text-xs">imported</code> folder.
+        <code className="rounded bg-surface-2 px-1 py-0.5 font-mono text-[13px] text-ink">{inbox.dir}</code> (for example{' '}
+        <code className="font-mono text-[13px]">Taxable/activity.csv</code>). Trades the app does not have yet are added, the database is copied
+        to the backups folder first, and the file moves to that account’s <code className="font-mono text-[13px]">imported</code> folder.
       </p>
       {inbox.waiting.length > 0 && (
         <div className="mb-3">
@@ -31,7 +31,7 @@ export function DropFolder({ inbox, onChanged }: { inbox: InboxStatus; onChanged
             <ul className="mt-1 space-y-1">
               {inbox.waiting.map((w) => (
                 <li key={w.file}>
-                  <span className="font-mono text-xs font-semibold">{w.file}</span>: {w.message}.
+                  <span className="font-mono text-[13px] font-semibold">{w.file}</span>: {w.message}.
                 </li>
               ))}
             </ul>
@@ -47,7 +47,7 @@ export function DropFolder({ inbox, onChanged }: { inbox: InboxStatus; onChanged
           rowKey={(e) => `${e.at} ${e.file}`}
           columns={[
             { key: 'at', label: 'When', render: (e) => <span className="num whitespace-nowrap">{when(e.at)}</span> },
-            { key: 'file', label: 'File', render: (e) => <span className="font-mono text-xs">{e.file}</span> },
+            { key: 'file', label: 'File', render: (e) => <span className="font-mono text-[13px]">{e.file}</span> },
             { key: 'account', label: 'Account', render: (e) => e.account || <span className="text-muted">—</span>, className: 'hidden sm:table-cell' },
             {
               key: 'result', label: 'Result',

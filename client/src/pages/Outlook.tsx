@@ -24,7 +24,7 @@ export default function Outlook() {
         {header}
         <Empty title="Nothing to look ahead from yet">
           Add trades under{' '}
-          <Link to="/activity/transactions" className="font-medium text-accent underline-offset-2 hover:underline">Activity</Link>.
+          <Link to="/data/transactions" className="font-medium text-accent underline-offset-2 hover:underline">Activity</Link>.
         </Empty>
       </>
     );

@@ -7,7 +7,7 @@ import { RangeSelector } from '../components/RangeSelector.tsx';
 import { Table } from '../components/Table.tsx';
 import { SellPreview } from '../components/SellPreview.tsx';
 import { useAccount } from '../lib/account.tsx';
-import { Empty, ErrorLine, Note, Notice, PageTitle, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
+import { Empty, ErrorLine, Notice, PageTitle, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
 import { date, money, pct, shares, tone } from '../lib/format.ts';
 import { useApi } from '../lib/useApi.ts';
 import { useMethod } from '../lib/method.tsx';
@@ -49,10 +49,10 @@ export default function Ticker() {
         title={
           <>
             {p.ticker}
-            {p.security.name && <span className="ml-3 text-[15px] font-normal text-muted">{p.security.name}</span>}
+            {p.security.name && <span className="ml-3 text-[17px] font-medium text-muted">{p.security.name}</span>}
           </>
         }
-        above={<Link className="mb-2 inline-block text-xs text-muted hover:text-ink" to="/">← Overview</Link>}
+        above={<Link className="mb-2 inline-block text-[13px] font-semibold text-muted hover:text-ink" to="/">← Overview</Link>}
         aside={<RangeSelector value={range} onChange={setRange} min={p.firstDate} max={config.data?.today} />}
       >
         {[p.security.assetType, p.security.sector].filter(Boolean).join(' · ')}
@@ -78,11 +78,17 @@ export default function Ticker() {
         <Stat label="Cost basis" value={money(h?.totalCost ?? 0)} sub={h?.shares ? `${money(h.avgCost, { precise: true })} a share` : undefined} />
         <Stat label="Unrealized gain" value={money(h?.gain ?? 0, { signed: true })} sub={h?.gain != null && h.totalCost ? pct(h.gainPct) : undefined} tone={tone(h?.gain)} />
       </StatRow>
-      <p className="mt-2 text-xs text-faint">
-        Position at {date(p.to)}, for the accounts selected in the top bar. Tables show events within the selected range; lots include earlier purchases.
-      </p>
+      <p className="tnum mt-2.5 text-[13px] text-muted">Position at {date(p.to)}, for the accounts selected in the top bar.</p>
 
-      <Section title="Price and trades">
+      <Section
+        title="Price and trades"
+        info={
+          <>
+            Split-adjusted closes, with your buys and sells marked at the price you paid. Hover a marker for the day. Weekend trades are marked on the next price date.
+            {p.splits.length > 0 && ` Splits: ${p.splits.map((s) => `${s.ratio}-for-1 on ${date(s.exDate)}${s.source === 'manual' ? ' (manual)' : ''}`).join(', ')}.`}
+          </>
+        }
+      >
         {p.prices.length ? (
           <LineChartFrame
             label={`${ticker} split-adjusted price with buy and sell markers`}
@@ -98,11 +104,6 @@ export default function Ticker() {
         ) : (
           <Empty title="No prices in this range">Try a wider range, or check Data health.</Empty>
         )}
-        <Note>
-          B = buy, S = sell, at your execution price. Prices and markers are adjusted for splits through the end date.
-          Weekend trades are marked on the next available price date.
-          {p.splits.length > 0 && ` Splits: ${p.splits.map((s) => `${s.ratio}-for-1 on ${date(s.exDate)}${s.source === 'manual' ? ' (manual)' : ''}`).join(', ')}.`}
-        </Note>
       </Section>
 
       <div className="mt-10">
@@ -122,7 +123,7 @@ export default function Ticker() {
         )}
         {tab === 'lots' && (
           method !== 'fifo' ? (
-            <p className="border-y border-rule py-3 text-[13px] text-muted">
+            <p className="border-y border-rule py-3 text-[14px] text-muted">
               Average cost pools purchases.{' '}
               <button className="cursor-pointer font-medium text-accent hover:underline" onClick={() => setMethod('fifo')}>
                 Switch to FIFO
@@ -166,7 +167,6 @@ export default function Ticker() {
               { key: 'shares', label: 'Shares bought', numeric: true, render: (d) => d.reinvestedShares === null ? <span className="text-faint">—</span> : shares(d.reinvestedShares) },
               { key: 'reason', label: 'Treatment', render: (d) => <span className="text-muted">{d.reason}</span> },
             ]} /> : <Empty title="No dividends in this range" />}
-            <Note>Reinvestments use the ex-date close, matching the rest of the app. Broker pay-date reinvestments can differ.</Note>
           </>
         )}
         {tab === 'sell' && <SellPreview key={`${p.ticker}:${JSON.stringify(selected)}`} input={p.sellPreview} method={method} />}

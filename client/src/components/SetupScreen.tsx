@@ -10,14 +10,14 @@ export function SetupScreen() {
           Get a free key at <span className="font-medium">tiingo.com</span> → Account → API Token.
         </li>
         <li>
-          Put it in a file named <code className="rounded bg-surface-2 px-1 font-mono text-xs">.env</code> (or <code className="rounded bg-surface-2 px-1 font-mono text-xs">.env.local</code>) in the project folder:
-          <pre className="mt-1.5 rounded bg-surface-2 px-3 py-2 font-mono text-xs">TIINGO_API_KEY=your-key-here</pre>
+          Put it in a file named <code className="rounded bg-surface-2 px-1 font-mono text-[13px]">.env</code> (or <code className="rounded bg-surface-2 px-1 font-mono text-[13px]">.env.local</code>) in the project folder:
+          <pre className="mt-1.5 rounded bg-surface-2 px-3 py-2 font-mono text-[13px]">TIINGO_API_KEY=your-key-here</pre>
         </li>
         <li>
-          Stop the server and run <code className="rounded bg-surface-2 px-1 font-mono text-xs">npm start</code> again.
+          Stop the server and run <code className="rounded bg-surface-2 px-1 font-mono text-[13px]">npm start</code> again.
         </li>
       </ol>
-      <p className="mt-4 text-xs text-muted">Ticker symbols and dates are sent to Tiingo; public fund identifiers are sent to Vanguard for ETF holdings. Amounts and share counts stay on this computer.</p>
+      <p className="mt-4 text-[13px] text-muted">Ticker symbols and dates are sent to Tiingo; public fund identifiers are sent to Vanguard for ETF holdings. Amounts and share counts stay on this computer.</p>
     </div>
   );
 }

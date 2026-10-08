@@ -6,14 +6,14 @@ import type { Oversell } from '../../../src/engine/costBasis.ts';
 import type { Allocation } from '../../../src/engine/allocation.ts';
 import { Flag } from '../components/Flag.tsx';
 import { TickerLink } from '../components/TickerLink.tsx';
-import { axisMoney, GainBar, LineChartFrame, useChartColors, type Marker } from '../components/charts.tsx';
+import { axisMoney, LineChartFrame, useChartColors } from '../components/charts.tsx';
 import { WhatMoved } from '../components/WhatMoved.tsx';
 import { RangeSelector } from '../components/RangeSelector.tsx';
 import { rangeQuery } from '../lib/range.ts';
-import { usePersistent, usePersistentRange } from '../lib/usePersistentRange.ts';
+import { usePersistentRange } from '../lib/usePersistentRange.ts';
 import { SetupScreen } from '../components/SetupScreen.tsx';
 import { Table, type Column } from '../components/Table.tsx';
-import { Button, Empty, ErrorLine, Notice, PageHeader, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
+import { Empty, ErrorLine, Notice, PageHeader, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
 import { PORTFOLIO_TABS } from '../lib/areas.ts';
 import { money, pct, shares, tone, when } from '../lib/format.ts';
 import { useRefresh, type RefreshInfo } from '../lib/refresh.tsx';
@@ -75,7 +75,7 @@ export default function Overview() {
         {header}
         <Empty title="No transactions yet">
           Copy the Transactions tab from the Google Sheet (header row included) and paste it under{' '}
-          <Link to="/activity/transactions" className="font-medium text-accent underline-offset-2 hover:underline">
+          <Link to="/data/transactions" className="font-medium text-accent underline-offset-2 hover:underline">
             Activity
           </Link>
           , or add trades one at a time there.
@@ -136,12 +136,12 @@ export default function Overview() {
 
       <Statement data={data} />
 
-      <div className="mt-8 grid grid-cols-1 gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)]">
+      <div className="mt-10 grid grid-cols-1 gap-x-14 gap-y-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ValueChart />
         <WhatMoved />
       </div>
 
-      <Section title="Holdings" count={data.holdings.length} className="mt-10">
+      <Section title="Holdings" count={data.holdings.length} className="mt-12">
         {data.holdings.length ? (
           <HoldingsTable holdings={data.holdings} totals={t} />
         ) : (
@@ -157,30 +157,27 @@ function Statement({ data }: { data: PortfolioResponse }) {
   const t = data.totals;
   return (
     <div>
-      <p className="text-xs text-muted">Market value</p>
-      <div className="mt-1 flex flex-wrap items-baseline gap-x-5 gap-y-1">
-        <span className="figure text-[44px] text-ink sm:text-[52px]">{money(t.equity)}</span>
-        <span className={`num text-[17px] font-medium ${tone(t.dayChange)}`}>
-          {money(t.dayChange, { signed: true })} <span className="font-normal">({pct(t.dayChangePct)})</span>
-          <span className="ml-1.5 text-[13px] font-normal text-muted">today</span>
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+        <span className="figure text-[48px] text-ink sm:text-[60px]">{money(t.equity)}</span>
+        <span className={`num text-[20px] font-semibold ${tone(t.dayChange)}`}>
+          {money(t.dayChange, { signed: true })} <span className="font-medium">({pct(t.dayChangePct)})</span>
+          <span className="ml-2 text-[15px] font-medium text-muted">today</span>
         </span>
       </div>
-      <p className="tnum mt-2 text-xs text-muted">
-        Prices as of {when(data.pricesAsOf)} · {data.holdings.length} holdings: {t.counts.gain} up, {t.counts.loss} down, {t.counts.neutral} within ±5%
-      </p>
-      <StatRow cols={5} className="mt-5">
+      <p className="tnum mt-2.5 text-[14px] text-muted">Prices as of {when(data.pricesAsOf)}</p>
+      <StatRow cols={5} className="mt-6">
         <Stat label="Cost basis" value={money(t.cost)} />
         <Stat label="Unrealized gain" value={money(t.gain, { signed: true })} sub={pct(t.gainPct)} tone={tone(t.gain)} />
         <Stat label="Realized gain" value={money(data.realizedGain, { signed: true })} tone={tone(data.realizedGain)} />
         <Stat label="Dividends" value={money(data.dividends, { signed: true })} tone={tone(data.dividends)} />
-        <Stat label="Total return" value={money(data.totalReturn, { signed: true })} sub="realized + unrealized + dividends" tone={tone(data.totalReturn)} />
+        <Stat label="Total return" value={money(data.totalReturn, { signed: true })} tone={tone(data.totalReturn)} />
       </StatRow>
     </div>
   );
 }
 
 function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: HoldingTotals }) {
-  const maxGain = Math.max(...holdings.map((h) => Math.abs(h.gainPct ?? 0)), 1e-9);
+  const maxWeight = Math.max(...holdings.map((h) => h.pctOfEquity), 1e-9);
   const columns: Column<Holding>[] = [
     {
       key: 'ticker',
@@ -189,7 +186,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       render: (h) => (
         <span className="inline-flex items-center whitespace-nowrap">
           <TickerLink ticker={h.ticker} />
-          {h.assetType === 'ETF' && <span className="ml-1.5 text-[11px] text-faint">ETF</span>}
+          {h.assetType === 'ETF' && <span className="ml-1.5 text-[12px] font-medium text-faint">ETF</span>}
           <Flag flag={h.flag} />
         </span>
       ),
@@ -208,14 +205,14 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
         </span>
       ),
     },
-    { key: 'equity', label: 'Value', numeric: true, sort: (h) => h.equity, render: (h) => <span className="font-medium">{money(h.equity)}</span>, total: money(t.equity) },
+    { key: 'equity', label: 'Value', numeric: true, sort: (h) => h.equity, render: (h) => <span className="font-semibold">{money(h.equity)}</span>, total: money(t.equity) },
     { key: 'cost', label: 'Cost', numeric: true, sort: (h) => h.totalCost, render: (h) => <span className="text-muted">{money(h.totalCost)}</span>, total: money(t.cost), className: 'hidden lg:table-cell' },
     {
       key: 'gain',
       label: 'Gain',
       numeric: true,
       sort: (h) => h.gain,
-      render: (h) => <span className={tone(h.gain)}>{money(h.gain, { signed: true })}</span>,
+      render: (h) => <span className={`font-medium ${tone(h.gain)}`}>{money(h.gain, { signed: true })}</span>,
       total: <span className={tone(t.gain)}>{money(t.gain, { signed: true })}</span>,
     },
     {
@@ -223,13 +220,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       label: 'Gain %',
       numeric: true,
       sort: (h) => h.gainPct,
-      render: (h) => (
-        <span className="inline-flex items-center justify-end gap-2">
-          <GainBar value={h.gainPct ?? 0} max={maxGain} className="hidden h-3 w-16 sm:block" />
-          {/* Fixed width, so every row's bar starts from the same zero line. */}
-          <span className={`w-[5.5rem] text-right ${tone(h.gain)}`}>{pct(h.gainPct)}</span>
-        </span>
-      ),
+      render: (h) => <span className={tone(h.gain)}>{pct(h.gainPct)}</span>,
       total: <span className={tone(t.gain)}>{pct(t.gainPct)}</span>,
     },
     {
@@ -256,13 +247,15 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       numeric: true,
       sort: (h) => h.pctOfEquity,
       render: (h) => (
-        <span className="inline-flex items-center justify-end gap-2" title={`${pct(h.pctOfCost, { signed: false })} of cost`}>
-          <span aria-hidden className="h-1 w-12 overflow-hidden rounded-full bg-rule">
-            <span className="block h-full rounded-full bg-ink/50" style={{ width: `${Math.min(100, h.pctOfEquity * 100)}%` }} />
+        <span className="inline-flex items-center justify-end gap-3" title={`${pct(h.pctOfCost, { signed: false })} of cost`}>
+          <span className="w-14 font-medium">{pct(h.pctOfEquity, { signed: false })}</span>
+          {/* The bar grows to the right and closes the row, scaled to the largest position. */}
+          <span aria-hidden className="h-3 w-24 overflow-hidden rounded-[2px] bg-rule/80">
+            <span className="block h-full bg-ink/80" style={{ width: `${Math.min(100, (h.pctOfEquity / maxWeight) * 100)}%` }} />
           </span>
-          <span className="w-12 text-muted">{pct(h.pctOfEquity, { signed: false })}</span>
         </span>
       ),
+      total: <span className="inline-flex items-center justify-end gap-3"><span className="w-14">100.00%</span><span className="w-24" /></span>,
       className: 'hidden lg:table-cell',
     },
   ];
@@ -272,8 +265,8 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
 function OverviewSkeleton() {
   return (
     <div aria-busy="true" aria-label="Loading portfolio">
-      <div className="h-14 w-72 animate-pulse rounded-sm bg-surface-2" />
-      <div className="mt-6 h-[66px] animate-pulse rounded-sm bg-surface-2" />
+      <div className="h-16 w-80 animate-pulse rounded-sm bg-surface-2" />
+      <div className="mt-6 h-[84px] animate-pulse rounded-sm bg-surface-2" />
       <div className="mt-10">
         <Skeleton rows={8} />
       </div>
@@ -281,81 +274,39 @@ function OverviewSkeleton() {
   );
 }
 
-interface DayEvents {
-  date: string;
-  buys: string[];
-  sells: string[];
-  splits: string[];
-}
-
+/** The market value over a range: the line alone. Trades and dividends are on the Chart page. */
 function ValueChart() {
   const config = useApi<{ today: string }>('/api/config');
   const [range, setRange] = usePersistentRange('overview', { preset: '1Y' });
-  const [trades, setTrades] = usePersistent('overviewTrades', true);
   const today = config.data?.today;
-  const { data } = useApi<{ firstDate: string | null; days: { date: string; value: number; incomplete: boolean; dividends: number }[]; events: DayEvents[]; summary: { gain: number } }>(
+  const { data } = useApi<{ firstDate: string | null; days: { date: string; value: number; incomplete: boolean }[]; summary: { gain: number } }>(
     today ? `/api/series${rangeQuery(range, today)}` : null,
   );
   const c = useChartColors();
-  const events = new Map((data?.events ?? []).map((e) => [e.date, e]));
-  const note = (d: { date: string; dividends: number }) => {
-    const e = events.get(d.date);
-    const parts = [
-      e?.buys.length ? `Bought ${e.buys.join(', ')}` : '',
-      e?.sells.length ? `Sold ${e.sells.join(', ')}` : '',
-      e?.splits.length ? `Split: ${e.splits.join(', ')}` : '',
-      d.dividends >= 0.005 ? `Dividends ${money(d.dividends)}` : '',
-    ].filter(Boolean);
-    return parts.length ? parts.join(' · ') : undefined;
-  };
-  const markers: Marker[] = !trades || !data ? [] : data.days.flatMap((d, i) => {
-    const e = events.get(d.date);
-    if (!e) return [];
-    return (['Buy', 'Sell', 'Split'] as const)
-      .filter((type) => e[type === 'Buy' ? 'buys' : type === 'Sell' ? 'sells' : 'splits'].length)
-      .map((type, k) => ({ id: i * 3 + k, date: d.date, price: d.value, type }));
-  });
   return (
     <Section
       flush
-      title={
-        <>
-          Value
-          {data && data.days.length > 0 && (
-            <span className="tnum ml-3 font-normal text-muted">
-              over the range <span className={`font-medium ${tone(data.summary.gain)}`}>{money(data.summary.gain, { signed: true })}</span>
-            </span>
-          )}
-        </>
-      }
+      title="Value"
+      info="Market value of the selected accounts at each day’s close. The gain over the range counts dividends and leaves out money added or taken out. For trades, dividends and zooming, use the Chart tab."
       aside={
-        <span className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="ghost" aria-pressed={trades} onClick={() => setTrades(!trades)} title={trades ? 'Hide trade markers' : 'Mark buys, sells and splits on the chart'} className={trades ? 'text-ink' : ''}>
-            Trades
-          </Button>
+        <span className="flex flex-wrap items-center gap-3">
+          {data && data.days.length > 0 && (
+            <span className={`num text-[15px] font-semibold ${tone(data.summary.gain)}`}>{money(data.summary.gain, { signed: true })}</span>
+          )}
           <RangeSelector value={range} onChange={setRange} min={data?.firstDate} max={today} compact />
         </span>
       }
     >
       {!data ? (
-        <div className="h-[240px] animate-pulse rounded-sm bg-surface-2" />
+        <div className="h-[280px] animate-pulse rounded-sm bg-surface-2" />
       ) : data.days.length ? (
-        <>
-          <LineChartFrame
-            label="Portfolio market value"
-            rows={data.days.map((d) => ({ date: d.date, incomplete: d.incomplete, value: d.value, note: note(d) }))}
-            series={[{ key: 'value', label: 'Market value', color: c.s1, area: true, format: (v) => money(v) }]}
-            yFormat={axisMoney}
-            height={240}
-            markers={markers}
-            letterLimit={30}
-          />
-          {markers.length > 0 && (
-            <p className="mt-1 text-xs text-faint">
-              {markers.length > 30 ? 'Filled dots are buys, open dots sells and splits' : 'B = buy, S = sell, × = split'}, on the day’s closing value. Hover a day for the tickers and any dividends.
-            </p>
-          )}
-        </>
+        <LineChartFrame
+          label="Portfolio market value"
+          rows={data.days.map((d) => ({ date: d.date, incomplete: d.incomplete, value: d.value }))}
+          series={[{ key: 'value', label: 'Market value', color: c.s1, area: true, format: (v) => money(v) }]}
+          yFormat={axisMoney}
+          height={280}
+        />
       ) : (
         <Empty title="No trading days in this range">Pick a wider range.</Empty>
       )}

@@ -32,14 +32,14 @@ export function SellPreview({ input, method }: { input: Input; method: CostMetho
   const gain = method === 'average' ? preview?.averageGain : preview?.gain;
   return (
     <Section title="If sold today">
-      <p className="mb-3 text-xs text-muted">Preview only · saves nothing and creates no transactions. Uses today’s lots in the selected accounts.</p>
+      <p className="mb-3 text-[13px] text-muted">Preview only · saves nothing and creates no transactions. Uses today’s lots in the selected accounts.</p>
       {held <= ZERO_SHARES ? <Empty title="No shares held today" /> : !input.price ? (
         <Empty title="No market price available">Load prices to estimate sale proceeds.</Empty>
       ) : (
         <>
           <form className="mb-3 flex flex-wrap items-end gap-3" onSubmit={(e) => e.preventDefault()}>
             {accounts.length > 1 && (
-              <label className="text-xs text-muted">
+              <label className="text-[13px] text-muted">
                 Account to sell from
                 <select
                   value={account.account} onChange={(e) => { setChosenAccount(e.target.value); setQuantity(null); }}
@@ -49,7 +49,7 @@ export function SellPreview({ input, method }: { input: Input; method: CostMetho
                 </select>
               </label>
             )}
-            <label className="text-xs text-muted">
+            <label className="text-[13px] text-muted">
               Shares to sell
               <input
                 type="number" min="0" max={held} step="any" required
@@ -59,7 +59,7 @@ export function SellPreview({ input, method }: { input: Input; method: CostMetho
               />
             </label>
             <Button type="button" size="sm" onClick={() => setQuantity(null)}>All shares</Button>
-            <p id="sell-preview-quantity" className={`text-xs ${error ? 'text-loss' : 'text-muted'}`} role={error ? 'alert' : undefined}>
+            <p id="sell-preview-quantity" className={`text-[13px] ${error ? 'text-loss' : 'text-muted'}`} role={error ? 'alert' : undefined}>
               {error ?? `${shares(held)} held · ${money(input.price.price, { precise: true })} per share · price as of ${when(input.price.asOf)}`}
             </p>
           </form>
@@ -71,7 +71,7 @@ export function SellPreview({ input, method }: { input: Input; method: CostMetho
                 <Stat label="Short-term gain (FIFO)" value={money(preview.shortTerm.gain, { signed: true })} tone={tone(preview.shortTerm.gain)} />
                 <Stat label="Long-term gain (FIFO)" value={money(preview.longTerm.gain, { signed: true })} tone={tone(preview.longTerm.gain)} />
               </StatRow>
-              <p className="my-3 text-xs text-muted">
+              <p className="my-3 text-[13px] text-muted">
                 {method === 'average' && `Average cost stays pooled across the selected accounts. Short/long split uses FIFO lots; FIFO gain is ${money(preview.gain, { signed: true })}. `}
                 Lots are consumed oldest first within the account being sold. Long-term means held more than one year.
               </p>

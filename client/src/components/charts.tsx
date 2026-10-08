@@ -1,6 +1,6 @@
 // Line charts on the ledger palette. A few horizontal hairlines, no vertical
-// grid, a thin line, the latest value written at its end. A crosshair tooltip
-// lists every series at the hovered date; incomplete days are shaded.
+// grid, a confident line, the latest value written at its end. A crosshair
+// tooltip states the value in ink; incomplete days are shaded.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { date as fmtDate } from '../lib/format.ts';
@@ -58,7 +58,7 @@ const MARKER_LETTER = { Buy: 'B', Sell: 'S', Split: '×' };
  * X ticks on calendar boundaries: weeks for a month, months up to ~8 months,
  * quarters up to ~3 years, then years. Each tick is the first trading day.
  */
-function axisTicks(rows: Row[]): { ticks: string[]; format: (d: string) => string } {
+export function axisTicks(rows: Row[]): { ticks: string[]; format: (d: string) => string } {
   const span = rows.length;
   const utc = (d: string) => new Date(d + 'T00:00:00Z');
   const key =
@@ -101,7 +101,7 @@ export function axisMoney(v: number): string {
 export const axisPct = (v: number) => `${Math.round(v * 100)}%`;
 
 /** Runs of incomplete days as [start, end] pairs. */
-function incompleteRuns(rows: Row[]): [string, string][] {
+export function incompleteRuns(rows: Row[]): [string, string][] {
   const runs: [string, string][] = [];
   let start: string | null = null;
   rows.forEach((r, i) => {
@@ -114,26 +114,29 @@ function incompleteRuns(rows: Row[]): [string, string][] {
   return runs;
 }
 
-function ChartTooltip({ active, payload, label, series }: { active?: boolean; payload?: any[]; label?: string; series: SeriesDef[] }) {
+/** One series: the value alone, in ink. Several: each with its colour and name. */
+export function ChartTooltip({ active, payload, label, series }: { active?: boolean; payload?: any[]; label?: string; series: SeriesDef[] }) {
   if (!active || !payload?.length || !label) return null;
   const row = payload[0].payload as Row;
+  const shown = series.filter((s) => typeof row[s.key] === 'number');
   return (
-    <div className="rounded border border-rule bg-surface px-3 py-2 text-xs shadow-[0_4px_16px_rgb(20_30_50/0.10)]">
-      <p className="mb-1 text-muted">
+    <div className="rounded-md border border-rule-strong/50 bg-surface px-3.5 py-2.5 shadow-[0_6px_20px_rgb(10_20_40/0.12)]">
+      <p className="num text-[13px] font-medium text-muted">
         {fmtDate(label)}
         {row.incomplete ? ' · incomplete' : ''}
       </p>
-      {series.map((s) => {
-        const v = row[s.key];
-        return (
-          <p key={s.key} className="flex items-center gap-2 py-px">
-            <span aria-hidden className="inline-block h-0.5 w-3 rounded-full" style={{ background: s.color }} />
-            <span className="num font-medium text-ink">{typeof v === 'number' ? s.format(v) : '—'}</span>
+      {shown.length === 1 ? (
+        <p className="num mt-0.5 text-[18px] font-semibold text-ink">{shown[0].format(row[shown[0].key] as number)}</p>
+      ) : (
+        shown.map((s) => (
+          <p key={s.key} className="mt-0.5 flex items-center gap-2 text-[14px]">
+            <span aria-hidden className="inline-block size-2 rounded-full" style={{ background: s.color }} />
+            <span className="num font-semibold text-ink">{s.format(row[s.key] as number)}</span>
             <span className="text-muted">{s.label}</span>
           </p>
-        );
-      })}
-      {row.note && <p className="mt-1 max-w-64 text-muted">{row.note}</p>}
+        ))
+      )}
+      {row.note && <p className="mt-1 max-w-64 text-[13px] text-ink">{row.note}</p>}
     </div>
   );
 }
@@ -152,14 +155,14 @@ export function Legend({
 }) {
   if (series.length < 2) return null;
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label="Legend">
+    <ul className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]" aria-label="Legend">
       {series.map((s) => {
         const off = hidden?.includes(s.key) ?? false;
         const entry = (
           <>
-            <span aria-hidden className="inline-block h-0.5 w-3.5 rounded-full" style={{ background: off ? 'var(--rule-strong)' : s.color }} />
-            <span className={off ? 'text-faint line-through' : 'text-muted'}>{s.label}</span>
-            {values?.[s.key] !== undefined && <span className={`tnum font-medium ${off ? 'text-faint' : 'text-ink'}`}>{values[s.key]}</span>}
+            <span aria-hidden className="inline-block size-2.5 rounded-full" style={{ background: off ? 'var(--rule-strong)' : s.color }} />
+            <span className={`font-medium ${off ? 'text-faint line-through' : 'text-muted'}`}>{s.label}</span>
+            {values?.[s.key] !== undefined && <span className={`tnum font-semibold ${off ? 'text-faint' : 'text-ink'}`}>{values[s.key]}</span>}
           </>
         );
         return (
@@ -194,7 +197,7 @@ export function LineChartFrame({
   markers = [],
   letterLimit = Infinity,
   endLabels = true,
-  dataTable = true,
+  dataTable = false,
 }: {
   rows: Row[];
   series: SeriesDef[];
@@ -216,11 +219,13 @@ export function LineChartFrame({
   const ends = endLabels && last
     ? series.flatMap((s) => (typeof last[s.key] === 'number' ? [{ s, v: last[s.key] as number }] : []))
     : [];
+  // Room on the right for the longest end label, at about 7px a character.
+  const rightMargin = ends.length ? 14 + 7 * Math.max(...ends.map(({ s, v }) => s.format(v).length)) : 8;
   return (
     <figure aria-label={label} className="m-0">
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={rows} margin={{ top: 10, right: ends.length ? 78 : 8, bottom: 0, left: 0 }}>
+          <ComposedChart data={rows} margin={{ top: 10, right: rightMargin, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={c.grid} strokeWidth={1} strokeDasharray="0" />
             {runs.map(([a, b]) => (
               <ReferenceArea key={a} x1={a} x2={b} fill={c.shade} fillOpacity={0.8} ifOverflow="hidden" />
@@ -245,13 +250,13 @@ export function LineChartFrame({
               tickFormatter={x.format}
               minTickGap={24}
               interval="preserveStartEnd"
-              tick={{ fill: c.text, fontSize: 11 }}
+              tick={{ fill: c.text, fontSize: 12, fontWeight: 500 }}
               tickLine={false}
               axisLine={{ stroke: c.axis, strokeOpacity: 0.6 }}
             />
             <YAxis
               tickFormatter={yFormat}
-              tick={{ fill: c.text, fontSize: 11 }}
+              tick={{ fill: c.text, fontSize: 12, fontWeight: 500 }}
               tickLine={false}
               axisLine={false}
               width={56}
@@ -266,9 +271,9 @@ export function LineChartFrame({
                   type="linear"
                   dataKey={s.key}
                   stroke={s.color}
-                  strokeWidth={1.5}
+                  strokeWidth={2}
                   fill={s.color}
-                  fillOpacity={0.045}
+                  fillOpacity={0.06}
                   dot={false}
                   activeDot={{ r: 3.5, stroke: c.surface, strokeWidth: 1.5, fill: s.color }}
                   isAnimationActive={false}
@@ -280,8 +285,8 @@ export function LineChartFrame({
                   type="linear"
                   dataKey={s.key}
                   stroke={s.color}
-                  strokeWidth={1.5}
-                  strokeDasharray={s.dashed ? '3 3' : undefined}
+                  strokeWidth={s.dashed ? 1.5 : 2}
+                  strokeDasharray={s.dashed ? '4 3' : undefined}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   dot={false}
@@ -300,14 +305,14 @@ export function LineChartFrame({
                 fill={s.color}
                 stroke="none"
                 ifOverflow="visible"
-                label={{ value: s.format(v), position: 'right', fill: s.color, fontSize: 11, fontWeight: 500 }}
+                label={{ value: s.format(v), position: 'right', fill: s.color, fontSize: 12, fontWeight: 600 }}
               />
             ))}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
       {runs.length > 0 && (
-        <figcaption className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+        <figcaption className="mt-1.5 flex items-center gap-1.5 text-[13px] text-muted">
           <span aria-hidden className="inline-block size-2.5 rounded-sm" style={{ background: c.shade }} />
           Shaded days are incomplete: some prices had not loaded yet, so those holdings are valued at cost.
         </figcaption>
@@ -321,8 +326,8 @@ export function LineChartFrame({
 function DataTable({ rows, series }: { rows: Row[]; series: SeriesDef[] }) {
   const [open, setOpen] = useState(false);
   return (
-    <details className="mt-1.5 text-xs" onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
-      <summary className="inline cursor-pointer text-faint hover:text-ink">{open ? 'Hide data table' : 'Data table'}</summary>
+    <details className="mt-3 text-[13px]" onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
+      <summary className="inline cursor-pointer font-semibold text-muted hover:text-ink">{open ? 'Hide the data table' : 'Show the data table'}</summary>
       {open && (
         <div className="mt-2 max-h-64 overflow-auto border-y border-rule">
           <table className="w-full">
@@ -383,7 +388,7 @@ export function FanChart({ rows, label, yFormat, format, names, target, height =
     if (!active || !payload?.length) return null;
     const r = payload[0].payload as FanRow;
     return (
-      <div className="rounded border border-rule bg-surface px-3 py-2 text-xs shadow-[0_4px_16px_rgb(20_30_50/0.10)]">
+      <div className="rounded border border-rule bg-surface px-3 py-2 text-[13px] shadow-[0_4px_16px_rgb(20_30_50/0.10)]">
         <p className="mb-1 text-muted">{r.label}</p>
         {([[names.outer, `${format(r.low)} – ${format(r.high)}`], [names.inner, `${format(r.midLow)} – ${format(r.midHigh)}`], [names.mid, format(r.mid)], [names.base, format(r.base)]] as const).map(([k, v]) => (
           <p key={k} className="flex items-baseline justify-between gap-4 py-px">
@@ -400,18 +405,18 @@ export function FanChart({ rows, label, yFormat, format, names, target, height =
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={c.grid} strokeWidth={1} />
-            <XAxis dataKey="label" minTickGap={24} interval="preserveStartEnd" tick={{ fill: c.text, fontSize: 11 }} tickLine={false} axisLine={{ stroke: c.axis, strokeOpacity: 0.6 }} />
-            <YAxis tickFormatter={yFormat} tick={{ fill: c.text, fontSize: 11 }} tickLine={false} axisLine={false} width={56} tickCount={5} domain={[0, 'auto']} />
+            <XAxis dataKey="label" minTickGap={24} interval="preserveStartEnd" tick={{ fill: c.text, fontSize: 12, fontWeight: 500 }} tickLine={false} axisLine={{ stroke: c.axis, strokeOpacity: 0.6 }} />
+            <YAxis tickFormatter={yFormat} tick={{ fill: c.text, fontSize: 12, fontWeight: 500 }} tickLine={false} axisLine={false} width={56} tickCount={5} domain={[0, 'auto']} />
             <Tooltip content={tip} cursor={{ stroke: c.axis, strokeWidth: 1 }} isAnimationActive={false} />
             <Area type="monotone" dataKey="outer" stroke="none" fill={c.s1} fillOpacity={0.08} isAnimationActive={false} activeDot={false} />
             <Area type="monotone" dataKey="inner" stroke="none" fill={c.s1} fillOpacity={0.16} isAnimationActive={false} activeDot={false} />
             <Line type="monotone" dataKey="base" stroke={c.muted} strokeWidth={1.25} strokeDasharray="3 3" dot={false} activeDot={false} isAnimationActive={false} />
             <Line type="monotone" dataKey="mid" stroke={c.s1} strokeWidth={1.5} dot={false} activeDot={{ r: 3.5, stroke: c.surface, strokeWidth: 1.5, fill: c.s1 }} isAnimationActive={false} />
-            {target != null && target > 0 && <ReferenceLine y={target} stroke={c.s2} strokeWidth={1.25} ifOverflow="extendDomain" label={{ value: names.target ?? '', position: 'insideTopLeft', fill: c.text, fontSize: 11 }} />}
+            {target != null && target > 0 && <ReferenceLine y={target} stroke={c.s2} strokeWidth={1.25} ifOverflow="extendDomain" label={{ value: names.target ?? '', position: 'insideTopLeft', fill: c.text, fontSize: 12, fontWeight: 500 }} />}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-      <figcaption className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+      <figcaption className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] font-medium text-muted">
         <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block h-0.5 w-3.5 rounded-full" style={{ background: c.s1 }} />{names.mid}</span>
         <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block size-2.5 rounded-sm" style={{ background: c.s1, opacity: 0.24 }} />{names.inner}</span>
         <span className="flex items-center gap-1.5"><span aria-hidden className="inline-block size-2.5 rounded-sm" style={{ background: c.s1, opacity: 0.1 }} />{names.outer}</span>
@@ -444,7 +449,7 @@ export function GainBar({ value, max, className = 'h-3 w-full' }: { value: numbe
     <span aria-hidden className={`relative block ${className}`}>
       <span className="absolute inset-y-0 left-1/2 w-px bg-rule-strong/70" />
       <span
-        className={`absolute inset-y-0.5 ${value >= 0 ? 'left-1/2 bg-gain/60' : 'right-1/2 bg-loss/60'}`}
+        className={`absolute inset-y-0.5 ${value >= 0 ? 'left-1/2 bg-gain/75' : 'right-1/2 bg-loss/75'}`}
         style={{ width: `${(Math.abs(value) / Math.max(max, 1e-9)) * 50}%`, minWidth: Math.abs(value) > 0 ? 1 : 0 }}
       />
     </span>

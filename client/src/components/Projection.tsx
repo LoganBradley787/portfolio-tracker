@@ -4,7 +4,7 @@ import { money, pct } from '../lib/format.ts';
 import { usePersistent } from '../lib/usePersistentRange.ts';
 import { axisMoney, FanChart } from './charts.tsx';
 import { Table } from './Table.tsx';
-import { Field, inputClass, Note, Section, Segmented, Stat, StatRow } from './ui.tsx';
+import { Field, inputClass, Section, Segmented, Stat, StatRow } from './ui.tsx';
 
 interface Saved {
   /** Null follows the recent pace. */
@@ -38,6 +38,7 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
   return (
     <Section
       title="Where this could go"
+      info={`A range, not a forecast. Everything is in today’s dollars. It assumes returns average ${Math.round(realReturn * 100)}% a year after inflation and swing by about ${Math.round(PROJECTION_VOLATILITY * 100)}% a year, roughly how a stock-heavy portfolio has behaved over long periods, and that the monthly amount never changes. It is 2,000 simulated paths from the selected accounts’ value today; your own holdings, taxes and fees are not modelled.`}
       aside={
         <Segmented<Saved['years']>
           label="Years ahead"
@@ -64,7 +65,7 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
             onChange={(e) => setSaved({ ...saved, monthly: amount(e.target.value) })}
           />
           {saved.monthly !== null && (
-            <button type="button" onClick={() => setSaved({ ...saved, monthly: null })} className="mt-1 block text-xs font-medium text-accent hover:underline">
+            <button type="button" onClick={() => setSaved({ ...saved, monthly: null })} className="mt-1 block text-[13px] font-medium text-accent hover:underline">
               Use my pace ({whole(fromPace)} a month)
             </button>
           )}
@@ -80,7 +81,7 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
           />
         </Field>
         <div>
-          <span className="mb-1 block text-xs font-medium text-muted">Average yearly return, after inflation</span>
+          <span className="mb-1 block text-[13px] font-semibold text-muted">Average yearly return, after inflation</span>
           <Segmented<Saved['realReturn']>
             label="Average yearly return after inflation"
             value={saved.realReturn}
@@ -91,13 +92,13 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
       </div>
 
       <StatRow cols={4} className="mb-6">
-        <Stat label={`Middle outcome in ${year(years)}`} value={whole(end.p50)} sub="half of outcomes are higher" />
-        <Stat label="8 in 10 outcomes" value={`${whole(end.p10)} – ${whole(end.p90)}`} sub="one in ten falls below, one in ten above" />
-        <Stat label="Money put in by then" value={whole(end.contributed)} sub={`today’s ${whole(value)} plus ${whole(monthly)} a month`} />
+        <Stat label={`Middle outcome in ${year(years)}`} value={whole(end.p50)} info="Half of the simulated outcomes end higher than this, half lower." />
+        <Stat label="8 in 10 outcomes" value={`${whole(end.p10)} – ${whole(end.p90)}`} info="One outcome in ten falls below this range and one in ten rises above it." />
+        <Stat label="Money put in by then" value={whole(end.contributed)} info={`Today’s ${whole(value)} plus ${whole(monthly)} a month, in today’s dollars.`} />
         {saved.target ? (
-          <Stat label={`Reaching ${whole(saved.target)}`} value={result.targetYear ? `Around ${year(result.targetYear)}` : `Not by ${year(years)}`} sub={`${pct(end.reached, { signed: false })} of outcomes get there by ${year(years)}`} />
+          <Stat label={`Reaching ${whole(saved.target)}`} value={result.targetYear ? `Around ${year(result.targetYear)}` : `Not by ${year(years)}`} sub={pct(end.reached, { signed: false })} info={`The year the middle outcome first passes the target, and the share of outcomes that get there by ${year(years)}.`} />
         ) : (
-          <Stat label="Today" value={whole(value)} sub="the starting value" />
+          <Stat label="Today" value={whole(value)} />
         )}
       </StatRow>
 
@@ -128,12 +129,6 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
           ]}
         />
       </div>
-      <Note>
-        A range, not a forecast. Everything is in today’s dollars. It assumes returns average {Math.round(realReturn * 100)}% a year
-        after inflation and swing by about {Math.round(PROJECTION_VOLATILITY * 100)}% a year, roughly how a stock-heavy
-        portfolio has behaved over long periods, and that the monthly amount never changes. It is 2,000 simulated paths from
-        the selected accounts’ value today; your own holdings, taxes and fees are not modelled.
-      </Note>
     </Section>
   );
 }

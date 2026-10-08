@@ -8,13 +8,13 @@ import type { DividendYear, TaxYear } from '../../../src/engine/realized.ts';
 import type { IncomeSummary } from '../../../src/engine/income.ts';
 import { Table, type Column } from '../components/Table.tsx';
 import { TickerLink } from '../components/TickerLink.tsx';
-import { Button, Columns, Empty, ErrorLine, Note, Notice, PageHeader, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
+import { Button, Columns, Empty, ErrorLine, Notice, PageHeader, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
 import { ACTIVITY_TABS } from '../lib/areas.ts';
 import { date, money, pct, shares, tone } from '../lib/format.ts';
 import { useApi } from '../lib/useApi.ts';
 import { useMethod } from '../lib/method.tsx';
 import { useAccount } from '../lib/account.tsx';
-export { default as Transactions } from './Transactions.tsx';
+
 
 export default function ActivityArea() {
   return <Outlet />;
@@ -106,11 +106,11 @@ export function Sales() {
     <div>
       {header}
       <StatRow cols={5} className="mb-8">
-        <Stat label="Realized gain" value={money(data.totalGain, { signed: true })} tone={tone(data.totalGain)} sub={`${data.sales.length} sale${data.sales.length === 1 ? '' : 's'}`} />
+        <Stat label={`Realized gain, ${data.sales.length} sale${data.sales.length === 1 ? '' : 's'}`} value={money(data.totalGain, { signed: true })} tone={tone(data.totalGain)} />
         <Stat label="Proceeds" value={money(data.totalProceeds)} />
-        <Stat label="Unrealized gain" value={money(data.unrealizedGain, { signed: true })} tone={tone(data.unrealizedGain)} sub="still held" />
+        <Stat label="Unrealized gain" value={money(data.unrealizedGain, { signed: true })} tone={tone(data.unrealizedGain)} />
         <Stat label="Dividends" value={money(data.dividends, { signed: true })} tone={tone(data.dividends)} />
-        <Stat label="Total return" value={money(data.totalReturn, { signed: true })} tone={tone(data.totalReturn)} sub="realized + unrealized + dividends" />
+        <Stat label="Total return" value={money(data.totalReturn, { signed: true })} tone={tone(data.totalReturn)} />
       </StatRow>
       {data.sales.length ? (
         <Table caption="Sales" rows={data.sales} columns={columns} rowKey={(s) => s.txId} initialSort={{ key: 'date', dir: 'desc' }} showTotals />
@@ -155,18 +155,22 @@ export function Dividends() {
     <div>
       {header}
       <StatRow cols={4} className="mb-8">
-        <Stat label="Next 12 months, estimated" value={money(income.annual)} sub="the last 12 months’ dividends on today’s shares" />
-        <Stat label="A month, on average" value={money(income.annual / 12)} sub="payments bunch up by quarter" />
-        <Stat label="Yield on today’s value" value={pct(income.yield, { signed: false })} sub="income ÷ value of the selected accounts" />
+        <Stat label="Next 12 months, estimated" value={money(income.annual)} info="The last twelve months’ dividends per share, on the shares held today. A cut, a rise or a special dividend is not anticipated." />
+        <Stat label="A month, on average" value={money(income.annual / 12)} info="A twelfth of the yearly estimate. Payments bunch up by quarter." />
+        <Stat label="Yield on today’s value" value={pct(income.yield, { signed: false })} info="Expected income divided by the value of the selected accounts." />
         {lastFull ? (
-          <Stat label={`Received in ${lastFull.year}`} value={money(lastFull.total)} sub={lastFull.change === null ? 'the first full year' : `${pct(lastFull.change)} on ${lastFull.year - 1}`} />
+          <Stat label={`Received in ${lastFull.year}`} value={money(lastFull.total)} sub={lastFull.change === null ? undefined : pct(lastFull.change)} info={lastFull.change === null ? 'The first full year.' : `Compared with ${lastFull.year - 1}.`} />
         ) : (
-          <Stat label={`Received in ${thisYear}`} value={money(years[0]?.total ?? 0)} sub="so far" />
+          <Stat label={`Received in ${thisYear} so far`} value={money(years[0]?.total ?? 0)} />
         )}
       </StatRow>
 
       <Columns split="wide-left">
-        <Section title="Expected by holding" count={income.rows.length}>
+        <Section
+          title="Expected by holding"
+          count={income.rows.length}
+          info="Each holding’s last twelve months of dividends per share, repeated on the shares held today. A cut, a rise or a one-off special dividend is not anticipated. The next ex-date is a guess from the usual gap between payments."
+        >
           {income.rows.length > 0 ? (
             <Table
               caption="Expected dividend income by holding"
@@ -189,14 +193,9 @@ export function Dividends() {
           ) : (
             <Empty title="Nothing held pays a dividend" />
           )}
-          <Note>
-            The estimate repeats each holding’s last twelve months of dividends per share on the shares held today, so a cut,
-            a rise or a one-off special dividend is not anticipated. The next ex-date is a guess from the usual gap between
-            payments.
-          </Note>
         </Section>
 
-        <Section title="Received by year">
+        <Section title="Received by year" info="What was received in each calendar year. The figure moves with the money invested as well as with the dividends themselves.">
           {years.length > 0 ? (
             <Table
               caption="Dividends received by year"
@@ -214,11 +213,15 @@ export function Dividends() {
           ) : (
             <Empty title="None received yet" />
           )}
-          <Note>Received figures change with the money invested as well as with the dividends themselves.</Note>
         </Section>
       </Columns>
 
-      <Section title="Every dividend" count={events.length} className="mt-10">
+      <Section
+        title="Every dividend"
+        count={events.length}
+        className="mt-10"
+        info="Each dividend is reinvested on its ex-date at that day’s close. Your broker buys on the pay date, a few days to weeks later, so its share counts can differ slightly. Reinvested shares earn later dividends and cost what was reinvested. Don’t enter the broker’s reinvestment buys as transactions, or they’ll be counted twice."
+      >
         {events.length ? (
           <Table
             caption="Dividends received"
@@ -260,11 +263,6 @@ export function Dividends() {
         ) : (
           <Empty title="No dividends received yet" />
         )}
-        <Note>
-          Your broker buys on the pay date, a few days to weeks later, so its share counts can differ slightly. Reinvested
-          shares earn later dividends and cost what was reinvested. Don’t enter the broker’s reinvestment buys as
-          transactions, or they’ll be counted twice.
-        </Note>
       </Section>
     </div>
   );
@@ -293,7 +291,7 @@ export function Taxes() {
             </Button>
           }
         >
-          Short- and long-term gains depend on which lots were sold, which average cost does not track. The switch in the top bar changes every figure in the app.
+          Short- and long-term gains depend on which lots were sold, which average cost does not track. The setting changes every cost and gain figure in the app.
         </Notice>
       </>
     );
@@ -315,7 +313,7 @@ function TaxYears({ years: saleYears, dividendYears }: { years: TaxYear[]; divid
   const [open, setOpen] = useState<number | null>(years[0]?.year ?? null);
   if (!years.length) return <Empty title="No sales or dividends yet" />;
   return (
-    <div>
+    <Section title="By tax year" info="Dividends are counted in the year of their ex-date (the pay date can fall later) and are not split into qualified and ordinary. Long-term means held more than one year.">
       <Table
         caption="Gains and dividends by tax year"
         rows={years}
@@ -339,7 +337,6 @@ function TaxYears({ years: saleYears, dividendYears }: { years: TaxYear[]; divid
           },
         ]}
       />
-      <Note>Dividends are counted in the year of their ex-date (the pay date can fall later) and are not split into qualified and ordinary.</Note>
       {years.filter((y) => y.year === open && y.lots.length > 0).map((y) => (
         <Section key={y.year} title={`Lots sold in ${y.year}`} count={y.lots.length}>
           <Table
@@ -369,13 +366,13 @@ function TaxYears({ years: saleYears, dividendYears }: { years: TaxYear[]; divid
           />
         </Section>
       ))}
-    </div>
+    </Section>
   );
 }
 
 export function TurningLongTermSoon({ lots }: { lots: SoonLot[] }) {
   return (
-    <Section title="Turning long-term in the next 60 days" count={lots.length} className="mt-10">
+    <Section title="Turning long-term in the next 60 days" count={lots.length} className="mt-10" info="Open FIFO lots in the selected accounts, including reinvested dividends, grouped by ticker and account. Gains use the latest stored prices.">
       {lots.length ? (
         <Table caption="Lots turning long-term within 60 days" rows={lots.map((l, i) => ({ ...l, i }))} rowKey={(l) => l.i} columns={[
           { key: 'date', label: 'Long-term from', render: (l) => <span className="num whitespace-nowrap font-medium">{date(l.longTermDate)}{l.lastLongTermDate && l.lastLongTermDate !== l.longTermDate ? ` – ${date(l.lastLongTermDate)}` : ''}</span> },
@@ -388,7 +385,6 @@ export function TurningLongTermSoon({ lots }: { lots: SoonLot[] }) {
       ) : (
         <p className="border-y border-rule py-2.5 text-[13px] text-muted">No lots cross into long-term in the next 60 days.</p>
       )}
-      <Note>Open FIFO lots in the selected accounts, including reinvested dividends, grouped by ticker and account. Gains use the latest stored prices.</Note>
     </Section>
   );
 }

@@ -9,12 +9,14 @@ import type { InboxStatus } from '../../../src/server/inbox.ts';
 import { DropFolder } from '../components/DropFolder.tsx';
 import { Table, type Column } from '../components/Table.tsx';
 import { TickerLink } from '../components/TickerLink.tsx';
-import { Button, Empty, ErrorLine, inputClass, Note, Notice, PageHeader, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
+import { Button, Empty, ErrorLine, Info, inputClass, Notice, PageHeader, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
 import { DATA_TABS } from '../lib/areas.ts';
 import { api } from '../lib/api.ts';
 import { date, money, pct, shares, when } from '../lib/format.ts';
 import { useRefresh, type RefreshInfo } from '../lib/refresh.tsx';
 import { useApi } from '../lib/useApi.ts';
+
+export { default as Transactions } from './Transactions.tsx';
 
 export default function DataArea() {
   return <Outlet />;
@@ -37,7 +39,7 @@ interface HealthResponse {
 }
 
 /** One line in the checklist: clear, or a count that opens the detail. */
-function Check({ title, issues, clear, children, always }: { title: string; issues: number; clear: string; children: ReactNode; always?: boolean }) {
+function Check({ title, issues, clear, children, always, info }: { title: string; issues: number; clear: string; children: ReactNode; always?: boolean; info?: ReactNode }) {
   const ok = issues === 0;
   const [open, setOpen] = useState(!ok);
   return (
@@ -46,7 +48,7 @@ function Check({ title, issues, clear, children, always }: { title: string; issu
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="grid w-full grid-cols-[1.25rem_1fr_auto] items-center gap-x-3 py-2.5 text-left text-[13px] hover:bg-ink/[0.025]"
+        className="grid w-full grid-cols-[1.25rem_1fr_auto] items-center gap-x-3 py-3 text-left text-[14px] hover:bg-ink/[0.025]"
       >
         {ok && !always ? (
           <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden fill="none" stroke="var(--gain)" strokeWidth="1.75" className="ml-0.5">
@@ -58,12 +60,17 @@ function Check({ title, issues, clear, children, always }: { title: string; issu
           <span aria-hidden className="ml-1 inline-block size-2 rounded-full bg-warn" />
         )}
         <span>
-          <span className="font-medium text-ink">{title}</span>
+          <span className="font-semibold text-ink">{title}</span>
           <span className={`ml-2 ${ok ? 'text-muted' : 'text-warn'}`}>{ok ? clear : `${issues} need${issues === 1 ? 's' : ''} a look`}</span>
         </span>
-        <span className="text-xs text-faint">{open ? 'Hide' : 'Show'}</span>
+        <span className="text-[13px] text-faint">{open ? 'Hide' : 'Show'}</span>
       </button>
-      {open && <div className="pb-5 pl-8">{children}</div>}
+      {open && (
+        <div className="pb-5 pl-8">
+          {info && <p className="mb-3 max-w-prose text-[14px] text-muted">{info}</p>}
+          {children}
+        </div>
+      )}
     </li>
   );
 }
@@ -102,7 +109,7 @@ export function Health() {
       <StatRow cols={4}>
         <Stat label="Price refresh" value={!info.hasKey ? 'No API key' : s.state === 'running' ? `Fetching ${s.done} of ${s.total}` : s.error ? 'Last refresh failed' : 'Idle'} tone={s.error ? 'text-loss' : ''} />
         <Stat label="Last complete refresh" value={when(s.lastSuccessAt)} />
-        <Stat label="Requests this hour" value={`${info.budget.used} of ${info.budget.limit}`} sub="Tiingo’s free tier allows 50" />
+        <Stat label="Requests this hour" value={`${info.budget.used} of ${info.budget.limit}`} info="Tiingo’s free tier allows 50 requests an hour. Refreshes wait when the hour’s budget is spent." />
         <Stat label="Waiting for prices" value={s.pending.length ? String(s.pending.length) : 'None'} sub={s.pending.length ? (s.resumesAt ? `resumes ${when(s.resumesAt)}` : s.pending.join(', ')) : undefined} />
       </StatRow>
       {s.error && (
@@ -115,7 +122,7 @@ export function Health() {
 
       <div className="mt-9 mb-2 flex items-baseline justify-between">
         <h2 className="text-[13px] font-semibold text-ink">Checks</h2>
-        <span className="num text-xs text-muted">{clear} of {checks.length} clear</span>
+        <span className="num text-[13px] text-muted">{clear} of {checks.length} clear</span>
       </div>
       <ul className="border-t border-rule-strong/60">
         <Check title="Tickers with prices" issues={attention.length} clear={`every ticker has prices from the provider`}>
@@ -126,7 +133,7 @@ export function Health() {
             Split rows from the sheet are not applied. Each is compared with the splits reported by the provider. If the provider has nothing within 5 trading days you can apply the sheet’s split by hand.
           </p>
           {data.splitCheck.length ? <SplitTable rows={data.splitCheck} onChanged={changed} /> : null}
-          <p className="mt-4 mb-1 text-xs font-medium text-muted">Splits in use ({data.splits.length})</p>
+          <p className="mt-4 mb-1 text-[13px] font-medium text-muted">Splits in use ({data.splits.length})</p>
           {data.splits.length ? (
             <p className="tnum text-[13px] leading-6">
               {data.splits.map((x, i) => (
@@ -195,7 +202,7 @@ export function Health() {
             ]}
           />
         </Check>
-        <Check title="Trades near that day’s close" issues={data.priceWarnings.length} clear="every trade with a stored close is within 20% of it">
+        <Check title="Trades near that day’s close" issues={data.priceWarnings.length} clear="every trade with a stored close is within 20% of it" info="More than 20% away usually means a typo, or a trade recorded on the wrong side of a split.">
           <Table
             caption="Price warnings"
             rows={data.priceWarnings}
@@ -208,9 +215,8 @@ export function Health() {
               { key: 'diff', label: 'Difference', numeric: true, render: (w) => <span className="text-warn">{pct(w.diffPct)}</span> },
             ]}
           />
-          <Note>More than 20% away usually means a typo, or a trade recorded on the wrong side of a split.</Note>
         </Check>
-        <Check title="Gaps in price history" issues={data.priceGaps.length} clear="no gaps longer than 5 trading days">
+        <Check title="Gaps in price history" issues={data.priceGaps.length} clear="no gaps longer than 5 trading days" info="Short gaps carry the previous close forward.">
           <Table
             caption="Price gaps"
             rows={data.priceGaps}
@@ -222,7 +228,6 @@ export function Health() {
               { key: 'days', label: 'Trading days', numeric: true, render: (g) => g.tradingDays },
             ]}
           />
-          <Note>Short gaps carry the previous close forward.</Note>
         </Check>
         <Check title="Sheet-compatible benchmark" issues={data.sheetMirror?.negative ? 1 : 0} clear="a check figure for the spreadsheet’s own method" always>
           <p className="mb-2.5 max-w-prose text-[13px] text-muted">
@@ -247,7 +252,7 @@ export function Health() {
                   ['Trades without a close', String(data.sheetMirror.missing), data.sheetMirror.missing ? 'text-warn' : ''],
                 ].map(([k, v, cls]) => (
                   <div key={k}>
-                    <dt className="text-xs text-muted">{k}</dt>
+                    <dt className="text-[13px] text-muted">{k}</dt>
                     <dd className={`tnum mt-0.5 font-medium ${cls}`}>{v}</dd>
                   </div>
                 ))}
@@ -279,9 +284,6 @@ function SecuritiesCheck({ securities, attention, onChanged }: { securities: Sec
         />
       </div>
       {rows.length ? <SecurityTable rows={rows} onChanged={onChanged} /> : <p className="text-[13px] text-muted">Nothing needs attention.</p>}
-      <Note>
-        A renamed ticker (SQ → XYZ) needs its provider symbol set. For a merger or delisting, record a Sell at the deal price on the closing date, and a Buy of the acquirer if shares were received.
-      </Note>
     </div>
   );
 }
@@ -295,7 +297,7 @@ function SecurityTable({ rows, onChanged }: { rows: Sec[]; onChanged: () => void
       render: (x) => (
         <span className="whitespace-nowrap">
           <TickerLink ticker={x.ticker} />
-          <span className="ml-1.5 text-[11px] text-faint">{x.benchmark ? 'benchmark' : x.held ? 'held' : 'sold'}</span>
+          <span className="ml-1.5 text-[12px] font-medium text-faint">{x.benchmark ? 'benchmark' : x.held ? 'held' : 'sold'}</span>
         </span>
       ),
     },
@@ -350,7 +352,7 @@ function SymbolEditor({ sec, onChanged }: { sec: Sec; onChanged: () => void }) {
           Save
         </Button>
       )}
-      {err && <span className="text-xs text-loss">{err}</span>}
+      {err && <span className="text-[13px] text-loss">{err}</span>}
     </form>
   );
 }
@@ -425,7 +427,13 @@ export function Securities() {
   const sectors = useMemo(() => [...new Set(rows.map((s) => s.sector).filter((x): x is string => !!x))].sort(), [rows]);
   const header = (
     <PageHeader tabs={DATA_TABS}>
-      Name, sector and asset type for each ticker you have traded. Sectors drive the allocation; ETFs are always their own group. Blank sectors and names are looked up automatically; what you type here is kept.
+      <span className="inline-flex items-center gap-2">
+        Name, sector and asset type for each ticker you have traded.
+        <Info>
+          Sectors drive the allocation; ETFs are always their own group. Blank sectors and names are looked up automatically; what you type here is kept.
+          A renamed ticker (SQ → XYZ) needs its provider symbol set. For a merger or delisting, record a Sell at the deal price on the closing date, and a Buy of the acquirer if shares were received.
+        </Info>
+      </span>
     </PageHeader>
   );
   if (!data) return <>{header}{error ? <ErrorLine error={error} /> : <Skeleton rows={8} />}</>;
@@ -439,10 +447,10 @@ export function Securities() {
       </datalist>
       {rows.length ? (
         <div className="relative overflow-x-auto">
-          <table className="w-full border-collapse text-[13px]">
+          <table className="w-full border-collapse text-[14px]">
             <caption className="sr-only">Securities</caption>
             <thead>
-              <tr className="border-b border-rule-strong/70 text-left text-xs text-muted">
+              <tr className="border-b border-rule-strong/70 text-left text-[13px] text-muted">
                 {['Ticker', 'Name', 'Sector', 'Asset type', 'Provider symbol', 'Prices', ''].map((h, i) => (
                   <th key={i} scope="col" className={`px-2.5 pt-1 pb-1.5 font-medium first:pl-0 last:pr-0 ${i === 5 ? 'hidden lg:table-cell' : ''}`}>
                     {h || <span className="sr-only">Save</span>}
@@ -530,12 +538,12 @@ function SecurityRow({ sec, onSaved }: { sec: TradedSec; onSaved: () => void }) 
             Save
           </Button>
         ) : saved ? (
-          <span className="text-xs text-muted" role="status">
+          <span className="text-[13px] text-muted" role="status">
             Saved
           </span>
         ) : null}
         {err && (
-          <span className="block text-xs text-loss" role="alert">
+          <span className="block text-[13px] text-loss" role="alert">
             {err}
           </span>
         )}

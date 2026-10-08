@@ -14,9 +14,10 @@ interface MoversResponse {
 }
 
 const SHOWN = 8;
-const LABEL: Record<MovePeriod, string> = { day: 'Day', week: 'Week', month: 'Month' };
+const PERIODS: MovePeriod[] = ['day', 'week', 'month', 'year', 'all'];
+const LABEL: Record<MovePeriod, string> = { day: 'Day', week: 'Week', month: 'Month', year: 'Year', all: 'All' };
 
-/** The holdings behind the latest day's, week's or month's change, in dollars. */
+/** The holdings behind the latest day's, week's, month's, year's or all-time change, in dollars. */
 export function WhatMoved() {
   const { data } = useApi<MoversResponse>('/api/movers');
   const [period, setPeriod] = usePersistent<MovePeriod>('movers', 'day');
@@ -33,46 +34,41 @@ export function WhatMoved() {
     <Section
       flush
       title="What moved"
-      aside={
-        <Segmented<MovePeriod>
-          label="Period"
-          value={period}
-          onChange={setPeriod}
-          options={(['day', 'week', 'month'] as const).map((p) => ({ value: p, label: LABEL[p] }))}
-        />
+      info={
+        <>
+          Each holding’s dollar gain over the period, dividends included. Money added or taken out is not counted as movement.
+          {data.asOf !== data.today && ' The day is the last one with new prices.'}
+          {m.incomplete && ' Some prices were missing in this period, so the figures are understated.'}
+        </>
       }
+      aside={<Segmented<MovePeriod> label="Period" value={period} onChange={setPeriod} options={PERIODS.map((p) => ({ value: p, label: LABEL[p] }))} />}
     >
-      <p className="tnum mb-2 text-xs text-muted">
-        {span}: <span className={`font-medium ${tone(m.gain)}`}>{money(m.gain, { signed: true })}</span>
-        {m.returnPct !== null && <span className={tone(m.gain)}> ({pct(m.returnPct)})</span>}
-        {data.asOf !== data.today && period === 'day' && ' · the last day with new prices'}
-        {m.incomplete && ' · some prices were missing, so this is understated'}
+      <p className="tnum mb-3 flex flex-wrap items-baseline gap-x-3 text-[14px]">
+        <span className={`text-[20px] font-semibold ${tone(m.gain)}`}>
+          {money(m.gain, { signed: true })}
+          {m.returnPct !== null && <span className="ml-2 font-medium">{pct(m.returnPct)}</span>}
+        </span>
+        <span className="text-muted">{span}</span>
       </p>
       {shown.length ? (
         <ul className="divide-y divide-rule border-y border-rule-strong/60">
           {shown.map((r) => (
-            <li key={r.ticker} className="grid grid-cols-[4.5rem_1fr_auto_auto] items-center gap-x-3 py-[7px] text-[13px]">
+            <li key={r.ticker} className="grid grid-cols-[4.5rem_1fr_auto_auto] items-center gap-x-3 py-2 text-[14px]">
               <TickerLink ticker={r.ticker} />
-              <GainBar value={r.gain} max={max} className="h-3 w-full" />
-              <span className={`num w-20 text-right font-medium ${tone(r.gain)}`}>{money(r.gain, { signed: true })}</span>
-              <span className={`num w-16 text-right ${tone(r.gain)}`}>{pct(r.returnPct)}</span>
+              <GainBar value={r.gain} max={max} className="h-3.5 w-full" />
+              <span className={`num w-24 text-right font-semibold ${tone(r.gain)}`}>{money(r.gain, { signed: true })}</span>
+              <span className={`num w-20 text-right ${tone(r.gain)}`}>{pct(r.returnPct)}</span>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="border-y border-rule py-2.5 text-[13px] text-muted">Nothing moved over this period.</p>
+        <p className="border-y border-rule py-3 text-[14px] text-muted">Nothing moved over this period.</p>
       )}
-      <p className="mt-2 text-xs text-faint">
-        Dollar gain over the period, dividends included, money added or taken out not counted.
-        {ranked.length > SHOWN && (
-          <>
-            {' '}
-            <button type="button" onClick={() => setAll(!all)} className="font-medium text-accent hover:underline">
-              {all ? `Show the ${SHOWN} biggest` : `Show all ${ranked.length}`}
-            </button>
-          </>
-        )}
-      </p>
+      {ranked.length > SHOWN && (
+        <button type="button" onClick={() => setAll(!all)} className="mt-2.5 text-[13px] font-semibold text-accent hover:underline">
+          {all ? `Show the ${SHOWN} biggest` : `Show all ${ranked.length}`}
+        </button>
+      )}
     </Section>
   );
 }
