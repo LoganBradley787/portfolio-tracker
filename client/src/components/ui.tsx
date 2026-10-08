@@ -98,7 +98,7 @@ export function PageHeader({ tabs, controls, children }: { tabs?: SubTab[]; cont
     <div className="mb-7">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-rule-strong/60">
         {tabs ? (
-          <nav aria-label="Sections" className="-mb-px flex gap-6 overflow-x-auto">
+          <nav aria-label="Sections" className="-mb-px flex gap-6 overflow-x-auto overflow-y-hidden">
             {tabs.map((t) => (
               <NavLink
                 key={t.to}

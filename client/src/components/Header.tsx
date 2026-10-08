@@ -93,7 +93,7 @@ export function Header() {
   return (
     <header className="border-b border-rule-strong/50 bg-bg">
       <div className="flex flex-wrap items-center gap-x-8 gap-y-1 px-6 sm:px-10">
-        <nav aria-label="Areas" className="order-last flex w-full gap-7 overflow-x-auto md:order-none md:w-auto">
+        <nav aria-label="Areas" className="order-last flex w-full gap-7 overflow-x-auto overflow-y-hidden md:order-none md:w-auto md:overflow-visible">
           {AREAS.map((a) => (
             <NavLink
               key={a.path}
@@ -101,7 +101,7 @@ export function Header() {
               end={a.path === '/'}
               className={({ isActive }) =>
                 `relative py-4 text-[15px] font-semibold whitespace-nowrap transition-colors duration-150 ${
-                  isActive ? 'text-ink after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:bg-ink' : 'text-muted hover:text-ink'
+                  isActive ? 'text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-ink' : 'text-muted hover:text-ink'
                 }`
               }
             >
