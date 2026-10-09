@@ -15,7 +15,7 @@ import { SetupScreen } from '../components/SetupScreen.tsx';
 import { Table, type Column } from '../components/Table.tsx';
 import { Empty, ErrorLine, Notice, PageHeader, Section, Segmented, Skeleton, Stat, StatRow } from '../components/ui.tsx';
 import { PORTFOLIO_TABS } from '../lib/areas.ts';
-import { money, pct, shares, tone, when } from '../lib/format.ts';
+import { date, money, pct, shares, tone, when } from '../lib/format.ts';
 import { useRefresh, type RefreshInfo } from '../lib/refresh.tsx';
 import { useApi } from '../lib/useApi.ts';
 
@@ -136,12 +136,12 @@ export default function Overview() {
 
       <Statement data={data} />
 
-      <div className="mt-10 grid grid-cols-1 gap-x-14 gap-y-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="mt-10 grid grid-cols-1 items-stretch gap-x-14 gap-y-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <ValueChart />
         <WhatMoved />
       </div>
 
-      <Section title="Holdings" count={data.holdings.length} className="mt-12">
+      <Section title="Holdings" count={data.holdings.length} countLabel="positions" className="mt-12">
         {data.holdings.length ? (
           <HoldingsTable holdings={data.holdings} totals={t} />
         ) : (
@@ -192,8 +192,8 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       ),
       total: 'Total',
     },
-    { key: 'shares', label: 'Shares', numeric: true, sort: (h) => h.shares, render: (h) => <span className="text-muted">{shares(h.shares)}</span> },
-    { key: 'avg', label: 'Avg cost', numeric: true, sort: (h) => h.avgCost, render: (h) => <span className="text-muted">{money(h.avgCost, { precise: true })}</span>, className: 'hidden lg:table-cell' },
+    { key: 'shares', label: 'Shares', numeric: true, sort: (h) => h.shares, render: (h) => shares(h.shares) },
+    { key: 'avg', label: 'Avg cost', numeric: true, sort: (h) => h.avgCost, render: (h) => money(h.avgCost, { precise: true }), className: 'hidden lg:table-cell' },
     {
       key: 'price',
       label: 'Price',
@@ -205,14 +205,14 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
         </span>
       ),
     },
-    { key: 'equity', label: 'Value', numeric: true, sort: (h) => h.equity, render: (h) => <span className="font-semibold">{money(h.equity)}</span>, total: money(t.equity) },
-    { key: 'cost', label: 'Cost', numeric: true, sort: (h) => h.totalCost, render: (h) => <span className="text-muted">{money(h.totalCost)}</span>, total: money(t.cost), className: 'hidden lg:table-cell' },
+    { key: 'equity', label: 'Value', numeric: true, sort: (h) => h.equity, render: (h) => <span className="font-bold">{money(h.equity)}</span>, total: money(t.equity) },
+    { key: 'cost', label: 'Cost', numeric: true, sort: (h) => h.totalCost, render: (h) => money(h.totalCost), total: money(t.cost), className: 'hidden lg:table-cell' },
     {
       key: 'gain',
       label: 'Gain',
       numeric: true,
       sort: (h) => h.gain,
-      render: (h) => <span className={`font-medium ${tone(h.gain)}`}>{money(h.gain, { signed: true })}</span>,
+      render: (h) => <span className={`font-semibold ${tone(h.gain)}`}>{money(h.gain, { signed: true })}</span>,
       total: <span className={tone(t.gain)}>{money(t.gain, { signed: true })}</span>,
     },
     {
@@ -220,7 +220,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       label: 'Gain %',
       numeric: true,
       sort: (h) => h.gainPct,
-      render: (h) => <span className={tone(h.gain)}>{pct(h.gainPct)}</span>,
+      render: (h) => <span className={`font-medium ${tone(h.gain)}`}>{pct(h.gainPct)}</span>,
       total: <span className={tone(t.gain)}>{pct(t.gainPct)}</span>,
     },
     {
@@ -228,7 +228,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       label: 'Today',
       numeric: true,
       sort: (h) => h.dayChange,
-      render: (h) => <span className={tone(h.dayChange)}>{money(h.dayChange, { signed: true })}</span>,
+      render: (h) => <span className={`font-medium ${tone(h.dayChange)}`}>{money(h.dayChange, { signed: true })}</span>,
       total: <span className={tone(t.dayChange)}>{money(t.dayChange, { signed: true })}</span>,
       className: 'hidden md:table-cell',
     },
@@ -237,7 +237,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       label: 'Today %',
       numeric: true,
       sort: (h) => h.dayChangePct,
-      render: (h) => <span className={tone(h.dayChange)}>{pct(h.dayChangePct)}</span>,
+      render: (h) => <span className={`font-medium ${tone(h.dayChange)}`}>{pct(h.dayChangePct)}</span>,
       total: <span className={tone(t.dayChange)}>{pct(t.dayChangePct)}</span>,
       className: 'hidden xl:table-cell',
     },
@@ -274,38 +274,53 @@ function OverviewSkeleton() {
   );
 }
 
-/** The market value over a range: the line alone. Trades and dividends are on the Chart page. */
+/**
+ * The market value over a range: the line alone. Laid out to mirror What
+ * moved beside it: title, range, then the gain in dollars and percent over
+ * the dates, then the figure. The chart fills the column so both end level.
+ */
 function ValueChart() {
   const config = useApi<{ today: string }>('/api/config');
   const [range, setRange] = usePersistentRange('overview', { preset: '1Y' });
   const today = config.data?.today;
-  const { data } = useApi<{ firstDate: string | null; days: { date: string; value: number; incomplete: boolean }[]; summary: { gain: number } }>(
-    today ? `/api/series${rangeQuery(range, today)}` : null,
-  );
+  const { data } = useApi<{
+    firstDate: string | null;
+    days: { date: string; value: number; incomplete: boolean }[];
+    summary: { from: string | null; to: string | null; startValue: number; gain: number };
+  }>(today ? `/api/series${rangeQuery(range, today)}` : null);
   const c = useChartColors();
+  const s = data?.summary;
+  const returnPct = s && s.startValue > 0 ? s.gain / s.startValue : null;
   return (
     <Section
       flush
+      className="flex min-h-0 flex-col"
       title="Value"
       info="Market value of the selected accounts at each day’s close. The gain over the range counts dividends and leaves out money added or taken out. For trades, dividends and zooming, use the Chart tab."
-      aside={
-        <span className="flex flex-wrap items-center gap-3">
-          {data && data.days.length > 0 && (
-            <span className={`num text-[15px] font-semibold ${tone(data.summary.gain)}`}>{money(data.summary.gain, { signed: true })}</span>
-          )}
-          <RangeSelector value={range} onChange={setRange} min={data?.firstDate} max={today} compact />
-        </span>
-      }
+      aside={<RangeSelector value={range} onChange={setRange} min={data?.firstDate} max={today} compact />}
     >
+      <p className="tnum mb-3 flex flex-wrap items-baseline gap-x-3 text-[14px]">
+        {data && data.days.length > 0 ? (
+          <>
+            <span className={`text-[20px] font-semibold ${tone(s!.gain)}`}>
+              {money(s!.gain, { signed: true })}
+              {returnPct !== null && <span className="ml-2 font-medium">({pct(returnPct)})</span>}
+            </span>
+            <span className="text-muted">{date(s!.from)} – {date(s!.to)}</span>
+          </>
+        ) : (
+          <span className="text-[20px] font-semibold text-transparent">0</span>
+        )}
+      </p>
       {!data ? (
-        <div className="h-[280px] animate-pulse rounded-sm bg-surface-2" />
+        <div className="min-h-[280px] flex-1 animate-pulse rounded-sm bg-surface-2" />
       ) : data.days.length ? (
         <LineChartFrame
           label="Portfolio market value"
           rows={data.days.map((d) => ({ date: d.date, incomplete: d.incomplete, value: d.value }))}
           series={[{ key: 'value', label: 'Market value', color: c.s1, area: true, format: (v) => money(v) }]}
           yFormat={axisMoney}
-          height={280}
+          height="fill"
         />
       ) : (
         <Empty title="No trading days in this range">Pick a wider range.</Empty>

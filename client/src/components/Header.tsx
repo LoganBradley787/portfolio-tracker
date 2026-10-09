@@ -1,6 +1,6 @@
 // The top bar: the five areas, then the accounts lens, the price status,
 // Refresh and Settings. No wordmark: the first area is the home page.
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { when } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
 import { Button } from './ui.tsx';
@@ -89,24 +89,24 @@ function GearIcon() {
 
 export function Header() {
   const { info, refresh } = useRefresh();
+  const { pathname } = useLocation();
+  const current = (a: (typeof AREAS)[number]) => a.match.some((m) => (m === '/' ? pathname === '/' : pathname === m || pathname.startsWith(m + '/')));
   const running = info?.status.state === 'running';
   return (
     <header className="border-b border-rule-strong/50 bg-bg">
       <div className="flex flex-wrap items-center gap-x-8 gap-y-1 px-6 sm:px-10">
         <nav aria-label="Areas" className="order-last flex w-full gap-7 overflow-x-auto overflow-y-hidden md:order-none md:w-auto md:overflow-visible">
           {AREAS.map((a) => (
-            <NavLink
+            <Link
               key={a.path}
               to={a.path}
-              end={a.path === '/'}
-              className={({ isActive }) =>
-                `relative py-4 text-[15px] font-semibold whitespace-nowrap transition-colors duration-150 ${
-                  isActive ? 'text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-ink' : 'text-muted hover:text-ink'
-                }`
-              }
+              aria-current={current(a) ? 'page' : undefined}
+              className={`relative py-4 text-[15px] font-semibold whitespace-nowrap transition-colors duration-150 ${
+                current(a) ? 'text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:bg-ink' : 'text-muted hover:text-ink'
+              }`}
             >
               {a.label}
-            </NavLink>
+            </Link>
           ))}
         </nav>
         <div className="ml-auto flex max-w-full flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">

@@ -1,7 +1,8 @@
 // How the portfolio is split: by sector (funds looked through), asset type or
 // position. A ring for the shape, a ruled table for the figures.
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import type { Slice } from '../../../src/engine/allocation.ts';
 import { useChartColors } from '../components/charts.tsx';
 import { Table } from '../components/Table.tsx';
@@ -15,14 +16,15 @@ import type { PortfolioResponse } from './Overview.tsx';
 
 type AllocView = 'byPosition' | 'byAssetType' | 'bySector';
 
-/** Ring colours: the four series, then steps of ink. Unassigned is always grey. */
-const RING = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)', 'oklch(0.30 0.02 262)', 'oklch(0.50 0.03 262)', 'oklch(0.66 0.03 262)', 'oklch(0.78 0.02 262)'];
+/** Ring colours come from the `--ring-*` tokens in index.css, biggest slice first. Unassigned is always grey. */
+const RING = Array.from({ length: 12 }, (_, i) => `var(--ring-${i + 1})`);
 
 export default function Allocation() {
   const { data, error } = useApi<PortfolioResponse>('/api/portfolio');
   const [view, setView] = usePersistent<AllocView>('allocation', 'bySector');
   const [funds, setFunds] = usePersistent<'split' | 'whole'>('allocationFunds', 'split');
   const c = useChartColors();
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const header = (
     <PageHeader
@@ -65,6 +67,7 @@ export default function Allocation() {
   const colour = (s: Slice, i: number) => (s.label === 'Unassigned' ? c.muted : RING[i % RING.length]);
   const ring = slices.map((s, i) => ({ ...s, fill: colour(s, i) }));
   const groupLabel = { bySector: 'Sector', byAssetType: 'Asset type', byPosition: 'Position' }[view];
+  const hover = ring.find((s) => s.label === hovered) ?? null;
   const countInfo =
     view === 'bySector'
       ? funds === 'split'
@@ -79,30 +82,41 @@ export default function Allocation() {
         <figure aria-label={`Allocation by ${groupLabel.toLowerCase()}`} className="relative m-0 h-[22rem]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={ring} dataKey="value" nameKey="label" innerRadius="62%" outerRadius="96%" paddingAngle={1.5} stroke={c.surface} strokeWidth={2} isAnimationActive={false} startAngle={90} endAngle={-270}>
+              {/* The hovered slice is named in the ring's centre, where there is room; nothing floats over the figure. */}
+              <Pie
+                data={ring}
+                dataKey="value"
+                nameKey="label"
+                innerRadius="62%"
+                outerRadius="96%"
+                paddingAngle={1.5}
+                stroke={c.surface}
+                strokeWidth={2}
+                isAnimationActive={false}
+                startAngle={90}
+                endAngle={-270}
+                onMouseEnter={(_, i) => setHovered(ring[i]?.label ?? null)}
+                onMouseLeave={() => setHovered(null)}
+              >
                 {ring.map((s) => (
-                  <Cell key={s.label} fill={s.fill} />
+                  <Cell key={s.label} fill={s.fill} fillOpacity={hovered && hovered !== s.label ? 0.35 : 1} style={{ transition: 'fill-opacity 120ms' }} />
                 ))}
               </Pie>
-              <Tooltip
-                isAnimationActive={false}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const s = payload[0].payload as Slice;
-                  return (
-                    <div className="rounded-md border border-rule-strong/50 bg-surface px-3.5 py-2.5 shadow-[0_6px_20px_rgb(10_20_40/0.12)]">
-                      <p className="text-[13px] font-medium text-muted">{s.label}</p>
-                      <p className="num text-[18px] font-semibold text-ink">{pct(s.pct, { signed: false })}</p>
-                      <p className="num text-[14px] text-muted">{money(s.value)}</p>
-                    </div>
-                  );
-                }}
-              />
             </PieChart>
           </ResponsiveContainer>
-          <figcaption className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="num text-[24px] font-semibold tracking-tight text-ink">{money(total, { whole: true })}</span>
-            <span className="text-[13px] font-medium text-muted">{slices.length} {view === 'byPosition' ? 'positions' : 'groups'}</span>
+          <figcaption className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-16 text-center" aria-live="polite">
+            {hover ? (
+              <>
+                <span className="text-[13px] font-semibold text-muted">{hover.label}</span>
+                <span className="num text-[28px] font-semibold tracking-tight text-ink">{pct(hover.pct, { signed: false })}</span>
+                <span className="num text-[14px] font-medium text-muted">{money(hover.value)}</span>
+              </>
+            ) : (
+              <>
+                <span className="num text-[24px] font-semibold tracking-tight text-ink">{money(total, { whole: true })}</span>
+                <span className="text-[13px] font-medium text-muted">{slices.length} {view === 'byPosition' ? 'positions' : 'groups'}</span>
+              </>
+            )}
           </figcaption>
         </figure>
 
@@ -123,14 +137,15 @@ export default function Allocation() {
             caption={`Allocation by ${groupLabel.toLowerCase()}`}
             rows={ring}
             rowKey={(s) => s.label}
+            rowClassName={(s) => (hovered === s.label ? 'bg-ink/[0.04]' : '')}
             columns={[
               {
                 key: 'label',
                 label: groupLabel,
                 sort: (s) => s.label,
                 render: (s) => (
-                  <span className="inline-flex items-center gap-2.5">
-                    <span aria-hidden className="inline-block size-2.5 rounded-full" style={{ background: s.fill }} />
+                  <span className="inline-flex items-center gap-2.5" onMouseEnter={() => setHovered(s.label)} onMouseLeave={() => setHovered(null)}>
+                    <span aria-hidden className="inline-block h-3.5 w-3.5 rounded-[2px]" style={{ background: s.fill }} />
                     {view === 'byPosition' ? <TickerLink ticker={s.label} /> : <span className={s.label === 'Unassigned' ? 'text-muted italic' : 'font-medium'}>{s.label}</span>}
                   </span>
                 ),

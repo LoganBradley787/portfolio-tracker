@@ -34,7 +34,7 @@ describe('Outlook page', () => {
   it('projects from the recent pace and says what the range assumes', () => {
     const html = text(render(Outlook));
     expect(html).toContain('Where this could go');
-    expect(html).toContain('Your pace: net money added over the last 12 complete months');
+    expect(html).toContain('Your pace over the last 12 complete months');
     expect(html).toContain('Middle outcome in 2046');
     expect(html).toContain('8 in 10 outcomes');
     expect(html).toContain('A range, not a forecast');

@@ -454,11 +454,16 @@ export function performanceView(ctx: AppContext, opts: { from?: string; to?: str
     };
     const days = seriesFor(ctx, subset, opts.method, calendar);
     const index = twrIndex(days, from, to);
-    const investedInRange = investedMask(days).some((v, i) => v && days[i].date >= from && days[i].date <= to);
+    const invested = investedMask(days).map((v, i) => v && days[i].date >= from && days[i].date <= to);
+    const investedDays = days.filter((_, i) => invested[i]);
     return {
       ...rangeSummary(days, from, to),
-      twr: index.length && investedInRange ? index.at(-1)!.index - 1 : null,
+      twr: index.length && investedDays.length ? index.at(-1)!.index - 1 : null,
       incompleteDays: days.filter((d) => d.date >= from && d.date <= to && d.incomplete).length,
+      // The first and last day the subset held anything within the range, so a
+      // young account is compared with a benchmark over its own life, not the whole range.
+      investedFrom: investedDays[0]?.date ?? null,
+      investedTo: investedDays.at(-1)?.date ?? null,
     };
   };
   const groups = (['Stock', 'ETF'] as const).map((assetType) => ({ assetType, ...breakdown((t) => (state.assetTypes[t.ticker] ?? 'Stock') === assetType) }));

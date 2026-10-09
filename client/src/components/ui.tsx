@@ -142,7 +142,7 @@ export function PageTitle({ title, children, aside, above }: { title: ReactNode;
  * A titled block within a page. `info` is the explanation of what the block
  * shows, behind an (i) beside the title.
  */
-export function Section({ title, count, children, aside, className = '', flush, info }: { title?: ReactNode; count?: number; children: ReactNode; aside?: ReactNode; className?: string; flush?: boolean; info?: ReactNode }) {
+export function Section({ title, count, countLabel, children, aside, className = '', flush, info }: { title?: ReactNode; count?: number; /** What the count counts, e.g. "holdings". */ countLabel?: string; children: ReactNode; aside?: ReactNode; className?: string; flush?: boolean; info?: ReactNode }) {
   return (
     <section className={`${flush ? '' : 'mt-10 first:mt-0'} ${className}`}>
       {(title || aside) && (
@@ -150,7 +150,7 @@ export function Section({ title, count, children, aside, className = '', flush, 
           <div className="flex items-center gap-2">
             <h2 className="text-[16px] font-semibold text-ink">
               {title}
-              {count !== undefined && <span className="num ml-2 font-medium text-faint">{count}</span>}
+              {count !== undefined && <span className="num ml-2 font-medium text-faint">{count}{countLabel ? ` ${countLabel}` : ''}</span>}
             </h2>
             {info && <Info>{info}</Info>}
           </div>
@@ -189,8 +189,8 @@ export function StatRow({ children, cols = 4, className = '' }: { children: Reac
 }
 
 /**
- * One figure. `sub` is a second figure of equal standing (a percentage next
- * to its dollars), not a caption; it is set at the same size and tone.
+ * One figure. `sub` is the same figure another way (the percentage next to
+ * its dollars), set in parentheses at the same size and tone.
  */
 export function Stat({ label, value, sub, tone = '', size = 'md', info }: { label: ReactNode; value: ReactNode; sub?: ReactNode; tone?: string; size?: 'md' | 'lg'; info?: ReactNode }) {
   const figure = size === 'lg' ? 'text-[28px] leading-8' : 'text-[22px] leading-7';
@@ -202,7 +202,7 @@ export function Stat({ label, value, sub, tone = '', size = 'md', info }: { labe
       </dt>
       <dd className={`num mt-1.5 flex flex-wrap items-baseline gap-x-2.5 font-semibold tracking-tight ${figure} ${tone}`}>
         <span>{value}</span>
-        {sub && <span className="font-medium">{sub}</span>}
+        {sub && <span className="font-medium">({sub})</span>}
       </dd>
     </div>
   );

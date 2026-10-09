@@ -9,7 +9,7 @@ export interface ProjectionInput {
   /** Money added at the end of each month, in today's dollars. */
   monthly: number;
   years: number;
-  /** Average yearly return after inflation, e.g. 0.05. */
+  /** Average yearly return, e.g. 0.05; after inflation when the result is read in today's dollars. */
   realReturn: number;
   /** Standard deviation of a year's return, e.g. 0.16. */
   volatility: number;
@@ -103,6 +103,59 @@ export function project(input: ProjectionInput): Projection {
     };
   });
   return { years: out, targetYear: out.find((y) => y.reached !== null && y.reached >= 0.5)?.year ?? null };
+}
+
+/** Monthly growth factor for a yearly return. */
+const monthlyGrowth = (yearly: number) => (1 + yearly) ** (1 / 12);
+
+/** Value after `years` of steady growth at `yearly`, adding `monthly` after each month. No randomness. */
+export function steadyValue(value: number, monthly: number, years: number, yearly: number): number {
+  const g = monthlyGrowth(yearly);
+  const n = Math.round(years * 12);
+  if (Math.abs(g - 1) < 1e-12) return value + monthly * n;
+  return value * g ** n + (monthly * (g ** n - 1)) / (g - 1);
+}
+
+/**
+ * The monthly amount that reaches `target` in `years` if returns average
+ * `yearly` every year. Zero when today's value alone gets there.
+ */
+export function monthlyNeeded(value: number, target: number, years: number, yearly: number): number {
+  const g = monthlyGrowth(yearly);
+  const n = Math.round(years * 12);
+  if (n <= 0) return 0;
+  const growthOnly = value * g ** n;
+  if (growthOnly >= target) return 0;
+  const annuity = Math.abs(g - 1) < 1e-12 ? n : (g ** n - 1) / (g - 1);
+  return (target - growthOnly) / annuity;
+}
+
+/**
+ * The average yearly return at which `monthly` a month reaches `target` in
+ * `years`. Null when even 100% a year is not enough, or when the inputs
+ * cannot grow (nothing in, nothing added).
+ */
+export function returnNeeded(value: number, monthly: number, target: number, years: number): number | null {
+  if (years <= 0 || (value <= 0 && monthly <= 0)) return null;
+  if (steadyValue(value, monthly, years, 1) < target) return null;
+  let lo = -0.99;
+  let hi = 1;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (steadyValue(value, monthly, years, mid) >= target) hi = mid;
+    else lo = mid;
+  }
+  return hi;
+}
+
+export const TARGET_HORIZON = 60;
+
+/**
+ * The first year, looking up to `TARGET_HORIZON` years ahead, in which at
+ * least half the simulated outcomes reach the target. Null if none does.
+ */
+export function yearsToTarget(input: Omit<ProjectionInput, 'years'>): number | null {
+  return project({ ...input, years: TARGET_HORIZON }).targetYear;
 }
 
 export interface Pace {

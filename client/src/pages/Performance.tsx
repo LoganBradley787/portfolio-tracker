@@ -62,8 +62,8 @@ interface PerformanceResponse {
     spyGain: number | null;
     aheadOfSpy: number | null;
   }[];
-  groups: { assetType: string; endValue: number; gain: number; twr: number | null; incompleteDays: number }[];
-  accounts: { account: string; endValue: number; gain: number; twr: number | null; incompleteDays: number }[];
+  groups: { assetType: string; endValue: number; gain: number; twr: number | null; incompleteDays: number; investedFrom: string | null; investedTo: string | null }[];
+  accounts: { account: string; endValue: number; gain: number; twr: number | null; incompleteDays: number; investedFrom: string | null; investedTo: string | null }[];
   months: MonthReturn[];
   moneyAdded: MoneyBreakdown;
   incompleteDays: number;
@@ -211,13 +211,21 @@ export function Returns() {
   ];
   const groupRows = p.groups.map((g) => ({ label: g.assetType === 'Stock' ? 'Stocks' : 'ETFs', ...g }));
 
-  const vsColumn = <T extends { twr: number | null }>() => ({
+  // A group or account is measured against the benchmark over the days it was
+  // actually invested, so an account opened last spring is not held to the whole range.
+  const vsColumn = <T extends { twr: number | null; investedFrom: string | null; investedTo: string | null }>() => ({
     key: 'vs',
     label: `vs ${vs}`,
     numeric: true,
     render: (r: T) => {
-      const lead = r.twr != null && vsReturn != null ? r.twr - vsReturn : null;
-      return <span className={`font-semibold ${tone(lead)}`}>{lead == null ? '—' : pct(lead)}</span>;
+      const own = r.investedFrom && r.investedTo ? benchmarkBetween(s.days, vs, r.investedFrom, r.investedTo) : null;
+      const lead = r.twr != null && own != null ? r.twr - own : null;
+      const partial = r.investedFrom && r.investedTo && (r.investedFrom > p.from || r.investedTo < p.to);
+      return (
+        <span className={`font-semibold ${tone(lead)}`} title={partial ? `${vs} measured ${date(r.investedFrom)} to ${date(r.investedTo)}, the days this was invested` : undefined}>
+          {lead == null ? '—' : pct(lead)}
+        </span>
+      );
     },
   });
 
@@ -330,7 +338,7 @@ export function Returns() {
                   ) : (
                     <span className={`font-semibold ${tone(r.leadMoney)}`}>
                       {money(r.leadMoney, { signed: true })}
-                      {r.leadPct !== null && <span className="ml-2 font-medium">{pct(r.leadPct)}</span>}
+                      {r.leadPct !== null && <span className="ml-2 font-medium">({pct(r.leadPct)})</span>}
                     </span>
                   ),
               },
@@ -339,7 +347,7 @@ export function Returns() {
         </Section>
 
         <div className="space-y-10">
-          <Section title="Stocks and ETFs" aside={<VsPicker p={p} benchmarks={benchmarks} vs={vs} setVs={setVs} />} info={`Time-weighted return of each group over the range, dividends included, positions sold in the range included. The last column is the group’s return minus ${vs}’s total return. A day with a missing price is left out of the return.`}>
+          <Section title="Stocks and ETFs" aside={<VsPicker p={p} benchmarks={benchmarks} vs={vs} setVs={setVs} />} info={`Time-weighted return of each group over the range, dividends included, positions sold in the range included. The last column is the group’s return minus ${vs}’s total return over the days the group was invested. A day with a missing price is left out of the return.`}>
             <Table caption={`Stocks and ETFs compared with ${vs}`} rows={groupRows} rowKey={(r) => r.label} columns={[
               { key: 'label', label: 'Group', render: (r) => <span className="font-semibold">{r.label}</span> },
               { key: 'value', label: 'Value', numeric: true, render: (r) => money(r.endValue) },
@@ -350,7 +358,7 @@ export function Returns() {
           </Section>
 
           {p.accounts.length > 1 && (
-            <Section title="Accounts" info={`Each account replayed on its own over the range. Returns are not additive. The last column is the account’s return minus ${vs}’s.`}>
+            <Section title="Accounts" info={`Each account replayed on its own over the range. Returns are not additive. The last column is the account’s return minus ${vs}’s over the days the account was invested, so a young account is compared over its own life; hover it for the dates.`}>
               <Table caption="Accounts over the selected range" rows={p.accounts} rowKey={(r) => r.account} columns={[
                 { key: 'account', label: 'Account', render: (r) => <span className="font-semibold">{r.account || '(no account)'}</span> },
                 { key: 'value', label: 'Value', numeric: true, render: (r) => money(r.endValue) },
@@ -375,6 +383,7 @@ export function PerformanceHoldings() {
     <Section
       title={view === 'gain' ? 'What drove the gain' : 'Price change over the range'}
       count={view === 'gain' ? p.contribution.length : p.holdings.length}
+      countLabel={view === 'gain' ? 'positions, sold ones included' : 'holdings'}
       info={
         view === 'gain'
           ? 'Each position’s gain over the range: value at the end, minus value at the start, minus what was bought, plus what was sold. Dividends are reinvested, so they are already in the value at the end. These add up to the gain over the range. Return is that gain on the money at work: value at the start plus what was bought. Ahead of SPY compares your gain with a SPY shadow bought on the same dates for the same dollars; a dash means the history needed is unavailable.'
@@ -530,6 +539,22 @@ function ContributionTable({ rows, total, atWork }: { rows: PerformanceResponse[
   );
 }
 
+/** A benchmark's total return from the close before `from` through `to`, from its daily index. Null if either end is missing. */
+export function benchmarkBetween(days: { date: string; benchmarks: Record<string, { pct: number | null }> }[], b: string, from: string, to: string): number | null {
+  const level = (i: number) => {
+    const v = days[i]?.benchmarks[b]?.pct;
+    return v == null ? null : 1 + v;
+  };
+  const a = days.findIndex((d) => d.date >= from);
+  let z = days.length - 1;
+  while (z > 0 && days[z].date > to) z--;
+  if (a < 0 || z < a) return null;
+  // The first invested day's return counts for the subset, so start from the close before it.
+  const start = a > 0 ? level(a - 1) : level(a);
+  const end = level(z);
+  return start && end ? end / start - 1 : null;
+}
+
 /** A benchmark's return in each calendar month of the range, from its daily total-return index. */
 export function benchmarkMonths(days: { date: string; benchmarks: Record<string, { pct: number | null }> }[], b: string): Map<string, number | null> {
   const out = new Map<string, number | null>();
@@ -568,8 +593,8 @@ export function Months() {
       title={mode === 'vs' ? `Monthly return, against ${vs}` : 'Monthly return'}
       info={
         mode === 'vs'
-          ? `Each month’s time-weighted return minus ${vs}’s total return that month, dividends reinvested on both sides. Green months beat it. A starred month is partial: the range or your first trade starts inside it.`
-          : 'Compounded daily time-weighted returns, including dividends. A starred month is partial: the range or your first trade starts inside it. A month with missing prices or no invested days shows a dash.'
+          ? `Each month’s time-weighted return minus ${vs}’s total return that month, dividends reinvested on both sides. Green months beat it. A month with a dotted underline is partial: the range or your first trade starts inside it.`
+          : 'Compounded daily time-weighted returns, including dividends. A month with a dotted underline is partial: the range or your first trade starts inside it. A month with missing prices or no invested days shows a dash.'
       }
       aside={
         <span className="flex flex-wrap items-center gap-3">

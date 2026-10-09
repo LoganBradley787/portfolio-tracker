@@ -22,7 +22,10 @@ export function WhatMoved() {
   const { data } = useApi<MoversResponse>('/api/movers');
   const [period, setPeriod] = usePersistent<MovePeriod>('movers', 'day');
   const [all, setAll] = useState(false);
-  const m = data?.periods[period];
+  // An older server may not know every period; fall back rather than vanish.
+  const known = PERIODS.filter((p) => data?.periods[p]);
+  const shown_ = known.includes(period) ? period : known[0];
+  const m = shown_ ? data?.periods[shown_] : null;
   if (!data || !m) return null;
 
   // The biggest moves either way; the rest are a click away.
@@ -41,12 +44,12 @@ export function WhatMoved() {
           {m.incomplete && ' Some prices were missing in this period, so the figures are understated.'}
         </>
       }
-      aside={<Segmented<MovePeriod> label="Period" value={period} onChange={setPeriod} options={PERIODS.map((p) => ({ value: p, label: LABEL[p] }))} />}
+      aside={<Segmented<MovePeriod> label="Period" value={shown_} onChange={setPeriod} options={PERIODS.map((p) => ({ value: p, label: LABEL[p] }))} />}
     >
-      <p className="tnum mb-3 flex flex-wrap items-baseline gap-x-3 text-[14px]">
+      <p className="tnum mb-3 flex flex-wrap items-baseline gap-x-3 text-[14px]" data-testid="movers-headline">
         <span className={`text-[20px] font-semibold ${tone(m.gain)}`}>
           {money(m.gain, { signed: true })}
-          {m.returnPct !== null && <span className="ml-2 font-medium">{pct(m.returnPct)}</span>}
+          {m.returnPct !== null && <span className="ml-2 font-medium">({pct(m.returnPct)})</span>}
         </span>
         <span className="text-muted">{span}</span>
       </p>

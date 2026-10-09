@@ -59,8 +59,7 @@ export function MonthlyReturns({ months, compare }: { months: MonthReturn[]; com
                     aria-label={`${name} ${year}: ${value}. ${description}`}
                     className={`num px-2 py-3 text-right font-medium ${tone(v)} ${wash(v)}`}
                   >
-                    {pct(v)}
-                    {m?.partial && <span className="text-muted">*</span>}
+                    <span className={m?.partial ? 'underline decoration-dotted decoration-1 underline-offset-4' : ''}>{pct(v)}</span>
                   </td>
                 );
               })}

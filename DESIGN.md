@@ -19,10 +19,11 @@ The visual system of the built UI (`client/src`). A personal brokerage statement
 - `accent` (a saturated blue): links, primary actions, the first chart series. The current tab, the chosen segment and the active layer button are ink, not accent.
 - `gain` / `loss` and their soft washes: only for gains and losses (and destructive actions use `loss` text).
 - `warn` / `warn-soft`: data that needs a look (flags, pending, manual splits, price warnings, a failed check).
-- Chart series: blue, ochre, plum, teal; `series-muted` for references such as money invested. The allocation ring continues with steps of ink.
+- Chart series: blue, ochre, plum, teal; `series-muted` for references such as money invested.
+- The allocation ring has its own twelve colours (`--ring-1` to `--ring-12` in `index.css`), biggest slice first: ink, oxblood, vermilion, brass, the series blue and teal, two greys, then plum, moss, steel and sand. Harder than the chart series on purpose. The oxblood is darker and duller than the loss red so the two never read as the same thing. Swatches are squares, not dots.
 
 ## Type
-Avenir Next first (it is on the owner's Mac and has tabular figures), then the system face; nothing is fetched from the network. Body 15px, tables 14px, labels 13px semibold, section titles 16px semibold, tab labels 16px semibold, area labels 15px semibold, stat figures 22px semibold (28px large), the market value 60px semibold with tight tracking (`.figure`). A secondary figure beside a stat (a percentage next to its dollars) is set at the same size and tone as the figure, one weight lighter; nothing on a page is set to be skipped. All figures use tabular numerals: `.num` in cells (no wrap), `.tnum` in running text.
+Avenir Next first (it is on the owner's Mac and has tabular figures), then the system face; nothing is fetched from the network. Body 15px, tables 14px, labels 13px semibold, section titles 16px semibold, tab labels 16px semibold, area labels 15px semibold, stat figures 22px semibold (28px large), the market value 60px semibold with tight tracking (`.figure`). A secondary figure beside a stat (a percentage next to its dollars) is set in parentheses at the same size and tone as the figure, one weight lighter; the same shape everywhere a percent follows dollars. Nothing on a page is set to be skipped. All figures use tabular numerals: `.num` in cells (no wrap), `.tnum` in running text.
 
 ## Components (`client/src/components/ui.tsx`)
 - `PageHeader`: the area's tabs and the page's controls on one rule, with an optional line of context beneath. `PageTitle` for the ticker detail and Settings.

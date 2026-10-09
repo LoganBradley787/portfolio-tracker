@@ -15,7 +15,7 @@ interface OutlookResponse {
 
 export default function Outlook() {
   const { data, error, loading } = useApi<OutlookResponse>('/api/outlook');
-  const header = <PageHeader tabs={OUTLOOK_TABS}>A range of where the portfolio could go, in today’s dollars. Not a forecast.</PageHeader>;
+  const header = <PageHeader tabs={OUTLOOK_TABS}>A range of where the portfolio could go. Not a forecast.</PageHeader>;
   if (error && !data) return <>{header}<ErrorLine error={error} /></>;
   if (!data) return <>{header}<Skeleton rows={10} /></>;
   if (data.transactionCount === 0) {

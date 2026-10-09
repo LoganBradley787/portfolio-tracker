@@ -202,7 +202,8 @@ export function LineChartFrame({
   rows: Row[];
   series: SeriesDef[];
   yFormat: (v: number) => string;
-  height?: number;
+  /** Pixels, or `fill` to take the height of a flex column it sits in. */
+  height?: number | 'fill';
   zeroLine?: boolean;
   label: string;
   markers?: Marker[];
@@ -222,8 +223,8 @@ export function LineChartFrame({
   // Room on the right for the longest end label, at about 7px a character.
   const rightMargin = ends.length ? 14 + 7 * Math.max(...ends.map(({ s, v }) => s.format(v).length)) : 8;
   return (
-    <figure aria-label={label} className="m-0">
-      <div style={{ height }}>
+    <figure aria-label={label} className={height === 'fill' ? 'm-0 flex min-h-0 flex-1 flex-col' : 'm-0'}>
+      <div style={height === 'fill' ? undefined : { height }} className={height === 'fill' ? 'min-h-[280px] flex-1' : undefined}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={rows} margin={{ top: 10, right: rightMargin, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={c.grid} strokeWidth={1} strokeDasharray="0" />
