@@ -37,8 +37,10 @@ const percent = (text: string): number | null => {
 
 const clampYears = (n: number) => Math.min(MAX_YEARS, Math.max(1, Math.round(n)));
 
-/** 0.075 → "7.5%": a rate as typed, without trailing zeros. */
-const rateText = (r: number) => `${+(r * 100).toFixed(2)}%`;
+/** 0.07 → "7": a rate as a percent figure, rounded so 0.07 × 100 never shows as 7.000000000000001. */
+const rateNumber = (r: number) => String(+(r * 100).toFixed(2));
+/** 0.075 → "7.5%". */
+const rateText = (r: number) => `${rateNumber(r)}%`;
 
 /** The range of values the portfolio could reach, from today's value and a monthly amount. */
 export function Projection({ value, pace, today }: { value: number; pace: Pace; today: string }) {
@@ -102,11 +104,11 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
             className={`${inputClass} num`}
             inputMode="decimal"
             aria-label="Average yearly return, percent"
-            defaultValue={(rate * 100).toString()}
+            defaultValue={rateNumber(rate)}
             onBlur={(e) => {
               const r = percent(e.target.value);
               if (r !== null) setSaved({ ...saved, returnRate: Math.min(1, Math.max(-0.5, r)) });
-              else e.target.value = (rate * 100).toString();
+              else e.target.value = rateNumber(rate);
             }}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
           />
