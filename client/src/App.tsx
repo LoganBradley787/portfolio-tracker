@@ -3,6 +3,7 @@ import { Header } from './components/Header.tsx';
 import { RefreshProvider } from './lib/refresh.tsx';
 import { MethodProvider } from './lib/method.tsx';
 import { AccountProvider } from './lib/account.tsx';
+import { DisplayProvider } from './lib/displayContext.tsx';
 import Overview from './pages/Overview.tsx';
 import Chart from './pages/Chart.tsx';
 import Allocation from './pages/Allocation.tsx';
@@ -21,6 +22,7 @@ export default function App() {
     <RefreshProvider>
       <MethodProvider>
       <AccountProvider>
+      <DisplayProvider>
       <div className="min-h-screen bg-bg text-ink">
         <Header />
         <main className="px-6 pt-7 pb-24 sm:px-10">
@@ -69,6 +71,7 @@ export default function App() {
           </Routes>
         </main>
       </div>
+      </DisplayProvider>
       </AccountProvider>
       </MethodProvider>
     </RefreshProvider>

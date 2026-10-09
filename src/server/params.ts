@@ -9,6 +9,11 @@ export function methodParam(v: string | undefined): CostMethod {
   return v === 'fifo' ? 'fifo' : 'average';
 }
 
+/** `?drip=off`: dividends are cash, not reinvested. Anything else: reinvested. */
+export function reinvestParam(v: string | undefined): boolean {
+  return v !== 'off';
+}
+
 export function sortParam(v: string | undefined): SaleSort {
   return v === 'gain' || v === 'gainPct' ? v : 'date';
 }

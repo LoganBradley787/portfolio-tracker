@@ -65,7 +65,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
 export const useAccount = () => useContext(AccountContext);
 
-const PER_ACCOUNT = ['/api/portfolio', '/api/exposure', '/api/realized', '/api/series', '/api/performance', '/api/ticker/'];
+const PER_ACCOUNT = ['/api/portfolio', '/api/exposure', '/api/realized', '/api/series', '/api/performance', '/api/ticker/', '/api/movers', '/api/outlook'];
 
 /** Adds `account=` per selected account to calculation endpoints, unless every account is on. */
 export function withAccount(path: string, selected: Selection): string {

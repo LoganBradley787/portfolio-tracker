@@ -1,6 +1,7 @@
 // Line charts on the ledger palette. A few horizontal hairlines, no vertical
 // grid, a confident line, the latest value written at its end. A crosshair
 // tooltip states the value in ink; incomplete days are shaded.
+import { display } from '../lib/display.ts';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { date as fmtDate } from '../lib/format.ts';
@@ -89,8 +90,10 @@ export function axisTicks(rows: Row[]): { ticks: string[]; format: (d: string) =
   return { ticks, format };
 }
 
-/** Compact dollars for an axis: $950, $12.5k, $1.2M. */
+/** Compact dollars for an axis: $950, $12.5k, $1.2M. Blank when figures are hidden; scaled with them. */
 export function axisMoney(v: number): string {
+  if (display.hidden()) return '';
+  v *= display.factor();
   const a = Math.abs(v);
   const sign = v < 0 ? '−' : '';
   if (a >= 1e6) return `${sign}$${+(a / 1e6).toFixed(1)}M`;

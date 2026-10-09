@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Pace } from '../../../src/engine/projection.ts';
 import { Projection } from '../components/Projection.tsx';
 import { Empty, ErrorLine, Notice, PageHeader, Skeleton } from '../components/ui.tsx';
+import { display } from '../lib/display.ts';
 import { OUTLOOK_TABS } from '../lib/areas.ts';
 import { useApi } from '../lib/useApi.ts';
 
@@ -39,7 +40,12 @@ export default function Outlook() {
           </Notice>
         </div>
       )}
-      <Projection value={data.value} pace={data.pace} today={data.today} />
+      {display.hidden() ? (
+        <Empty title="Figures are hidden">The outlook works in dollars. Show figures as they are under Settings to see it.</Empty>
+      ) : (
+        // In scaled mode the projection runs in scaled dollars throughout, so what is typed and shown agree.
+        <Projection value={data.value * display.factor()} pace={{ ...data.pace, monthly: data.pace.monthly * display.factor() }} today={data.today} />
+      )}
     </div>
   );
 }

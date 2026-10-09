@@ -176,7 +176,7 @@ function TransactionTable({
     },
     { key: 'type', label: 'Type', render: (t) => <span className={t.type === 'Sell' ? 'font-medium' : 'text-muted'}>{t.type}</span> },
     { key: 'shares', label: 'Shares', numeric: true, render: (t) => shares(t.shares) },
-    { key: 'price', label: 'Price', numeric: true, render: (t) => money(t.price, { precise: true }) },
+    { key: 'price', label: 'Price', numeric: true, render: (t) => money(t.price, { precise: true, asIs: true }) },
     { key: 'amount', label: 'Amount', numeric: true, render: (t) => money(t.shares * t.price), className: 'hidden md:table-cell' },
     { key: 'account', label: 'Account', render: (t) => <span className="text-muted">{t.account || '—'}</span>, className: 'hidden sm:table-cell' },
     { key: 'note', label: 'Note', render: (t) => <span className="block max-w-[16rem] truncate text-muted" title={t.note}>{t.note}</span>, className: 'hidden xl:table-cell' },

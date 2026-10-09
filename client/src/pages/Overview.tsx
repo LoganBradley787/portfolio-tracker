@@ -193,7 +193,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       total: 'Total',
     },
     { key: 'shares', label: 'Shares', numeric: true, sort: (h) => h.shares, render: (h) => shares(h.shares) },
-    { key: 'avg', label: 'Avg cost', numeric: true, sort: (h) => h.avgCost, render: (h) => money(h.avgCost, { precise: true }), className: 'hidden lg:table-cell' },
+    { key: 'avg', label: 'Avg cost', numeric: true, sort: (h) => h.avgCost, render: (h) => money(h.avgCost, { precise: true, asIs: true }), className: 'hidden lg:table-cell' },
     {
       key: 'price',
       label: 'Price',
@@ -201,7 +201,7 @@ function HoldingsTable({ holdings, totals: t }: { holdings: Holding[]; totals: H
       sort: (h) => h.price,
       render: (h) => (
         <span title={h.priceSource === 'cost' ? 'No price: valued at average cost' : `${h.priceSource === 'quote' ? 'Live quote' : 'Close'} · ${when(h.priceAsOf)}`} className={h.priceSource === 'cost' ? 'text-muted italic' : ''}>
-          {money(h.price)}
+          {money(h.price, { asIs: true })}
         </span>
       ),
     },

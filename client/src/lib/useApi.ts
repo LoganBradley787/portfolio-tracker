@@ -7,9 +7,9 @@ import { useAccount, withAccount } from './account.tsx';
 /** GETs a path, re-fetching when the path or the app's data version changes. */
 export function useApi<T>(rawPath: string | null) {
   const version = useDataVersion();
-  const { method } = useMethod();
+  const { method, reinvest } = useMethod();
   const { selected } = useAccount();
-  const path = rawPath === null ? null : withAccount(withMethod(rawPath, method), selected);
+  const path = rawPath === null ? null : withAccount(withMethod(rawPath, method, reinvest), selected);
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);

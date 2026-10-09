@@ -31,10 +31,10 @@ export interface State extends ReturnType<typeof loadLedgerState> {
 }
 
 /** `accounts` limits the transactions to those accounts; prices, splits and dividend rates are shared. */
-export function loadState(ctx: AppContext, accounts?: string[]): State {
+export function loadState(ctx: AppContext, accounts?: string[], reinvest = true): State {
   const securities = ctx.q.listSecurities();
   return {
-    ...loadLedgerState(ctx.q, accounts),
+    ...loadLedgerState(ctx.q, accounts, reinvest),
     quotes: Object.fromEntries(ctx.q.listQuotes().map((x) => [x.ticker, { last: x.last, prevClose: x.prevClose, asOf: x.asOf }])),
     securities,
     assetTypes: Object.fromEntries(securities.map((s) => [s.ticker, s.assetType])),
@@ -76,8 +76,8 @@ export function refreshInfo(ctx: AppContext) {
   };
 }
 
-export function exposureView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[]; page?: ExposurePage }) {
-  const state = loadState(ctx, opts.accounts);
+export function exposureView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[]; reinvest?: boolean; page?: ExposurePage }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const ledger = runLedger(state.ledgerTransactions, state.splits, { method: opts.method, dividends: state.dividends });
   const { holdings } = computeHoldings({
     positions: ledger.positions, prices: currentPrices(state, ledger.positions.keys()),
@@ -111,8 +111,8 @@ export function exposureView(ctx: AppContext, opts: { method: CostMethod; accoun
   };
 }
 
-export function portfolioView(ctx: AppContext, opts: { assetType?: AssetType; method: CostMethod; accounts?: string[] }) {
-  const state = loadState(ctx, opts.accounts);
+export function portfolioView(ctx: AppContext, opts: { assetType?: AssetType; method: CostMethod; accounts?: string[]; reinvest?: boolean }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const ledger = runLedger(state.ledgerTransactions, state.splits, { method: opts.method, dividends: state.dividends });
   const prices = currentPrices(state, ledger.positions.keys());
   const { holdings, totals } = computeHoldings({
@@ -146,8 +146,8 @@ export function portfolioView(ctx: AppContext, opts: { assetType?: AssetType; me
   };
 }
 
-export function realizedView(ctx: AppContext, opts: { assetType?: AssetType; method: CostMethod; sort: SaleSort; accounts?: string[] }) {
-  const state = loadState(ctx, opts.accounts);
+export function realizedView(ctx: AppContext, opts: { assetType?: AssetType; method: CostMethod; sort: SaleSort; accounts?: string[]; reinvest?: boolean }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const ledger = runLedger(state.ledgerTransactions, state.splits, { method: opts.method, dividends: state.dividends });
   const keep = (t: string) => !opts.assetType || (state.assetTypes[t] ?? 'Stock') === opts.assetType;
   // Shares bought with each dividend (summed over accounts; null when it stayed cash).
@@ -188,8 +188,8 @@ export function realizedView(ctx: AppContext, opts: { assetType?: AssetType; met
   };
 }
 
-export function healthReport(ctx: AppContext, method: CostMethod = 'average') {
-  const state = loadState(ctx);
+export function healthReport(ctx: AppContext, method: CostMethod = 'average', reinvest = true) {
+  const state = loadState(ctx, undefined, reinvest);
   const ledger: Ledger = runLedger(state.ledgerTransactions, state.splits, { method });
   const calendar = (state.bars.SPY ?? []).map((b) => b.date);
   const traded = new Set(state.transactions.map((t) => t.ticker));
@@ -330,8 +330,8 @@ function dayEvents(state: State, series: DayPoint[], from: string, to: string): 
 }
 
 /** The portfolio's gain over the last day, week, month, year and all time, holding by holding. */
-export function moversView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[] }) {
-  const state = loadState(ctx, opts.accounts);
+export function moversView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[]; reinvest?: boolean }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const today = ctx.today();
   const series = seriesFor(ctx, state, opts.method, calendarFor(state, today));
   // The last day a held ticker's price changed: a weekend or holiday "today" moved nothing.
@@ -351,8 +351,8 @@ export function moversView(ctx: AppContext, opts: { method: CostMethod; accounts
 }
 
 /** Forward-looking figures: the pace of money added, expected dividend income, and fund fees. */
-export function outlookView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[] }) {
-  const state = loadState(ctx, opts.accounts);
+export function outlookView(ctx: AppContext, opts: { method: CostMethod; accounts?: string[]; reinvest?: boolean }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const today = ctx.today();
   const ledger = runLedger(state.ledgerTransactions, state.splits, { method: opts.method, dividends: state.dividends });
   const { holdings, totals } = computeHoldings({
@@ -377,8 +377,8 @@ export function outlookView(ctx: AppContext, opts: { method: CostMethod; account
   };
 }
 
-export function seriesView(ctx: AppContext, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[] }) {
-  const state = loadState(ctx, opts.accounts);
+export function seriesView(ctx: AppContext, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[]; reinvest?: boolean }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const calendar = calendarFor(state, ctx.today());
   const series = seriesFor(ctx, state, opts.method, calendar);
   const from = opts.from ?? series[0]?.date ?? ctx.today();
@@ -418,8 +418,8 @@ export function seriesView(ctx: AppContext, opts: { from?: string; to?: string; 
 }
 
 /** Return figures and benchmark comparison for a range. */
-export function performanceView(ctx: AppContext, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[] }) {
-  const state = loadState(ctx, opts.accounts);
+export function performanceView(ctx: AppContext, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[]; reinvest?: boolean }) {
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   const calendar = calendarFor(state, ctx.today());
   const series = seriesFor(ctx, state, opts.method, calendar);
   const from = opts.from ?? series[0]?.date ?? ctx.today();
@@ -538,10 +538,10 @@ export function performanceView(ctx: AppContext, opts: { from?: string; to?: str
 }
 
 /** Ticker detail uses the same selected accounts and ledger method as the rest of the app. */
-export function tickerView(ctx: AppContext, ticker: string, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[] }) {
+export function tickerView(ctx: AppContext, ticker: string, opts: { from?: string; to?: string; method: CostMethod; accounts?: string[]; reinvest?: boolean }) {
   const security = ctx.q.getSecurity(ticker);
   if (!security) return null;
-  const state = loadState(ctx, opts.accounts);
+  const state = loadState(ctx, opts.accounts, opts.reinvest);
   state.transactions = state.transactions.filter((t) => t.ticker === ticker);
   state.ledgerTransactions = state.ledgerTransactions.filter((t) => t.ticker === ticker);
   const to = opts.to ?? ctx.today();

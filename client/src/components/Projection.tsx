@@ -68,7 +68,8 @@ export function Projection({ value, pace, today }: { value: number; pace: Pace; 
 
   const year = (n: number) => Number(today.slice(0, 4)) + n;
   const end = result.years[result.years.length - 1];
-  const whole = (v: number) => money(v, { whole: true });
+  // The caller has already scaled `value` and the pace, so nothing here is scaled again.
+  const whole = (v: number) => money(v, { whole: true, asIs: true });
   const checkpoints = result.years.filter((y) => y.year % 5 === 0 || y.year === years);
   const dollars = after ? 'today’s dollars' : 'future dollars';
 

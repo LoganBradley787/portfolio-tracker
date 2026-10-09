@@ -1,14 +1,14 @@
 import { Hono } from 'hono';
 import type { AppContext } from '../context.ts';
 import { healthReport, refreshInfo } from '../service.ts';
-import { methodParam } from '../params.ts';
+import { methodParam, reinvestParam } from '../params.ts';
 
 export function healthRoutes(ctx: AppContext) {
   const r = new Hono();
 
   r.get('/health-report', (c) => {
     ctx.inbox?.maybeScan();
-    return c.json(healthReport(ctx, methodParam(c.req.query('method'))));
+    return c.json(healthReport(ctx, methodParam(c.req.query('method')), reinvestParam(c.req.query('drip'))));
   });
 
   /** Looks in the drop folder now, rather than waiting for the watcher. */

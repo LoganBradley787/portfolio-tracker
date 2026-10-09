@@ -1,4 +1,5 @@
-// Dividend reinvestment (DRIP). Every dividend is assumed to be reinvested, and
+// Dividend reinvestment (DRIP). By default every dividend is reinvested (the
+// Settings page can turn this off, in which case dividends are cash), and
 // the entered transactions don't include those purchases, so they are
 // derived here: each dividend buys the same ticker, in the account that
 // received it, at the ex-date close. The rest of the engine then sees them as
@@ -54,8 +55,8 @@ function closeOnOrAfter(bars: PriceBar[], date: string): number | null {
   return b && b.date <= addDays(date, MAX_PRICE_LAG_DAYS) && b.close > 0 ? b.close : null;
 }
 
-export function reinvestDividends(input: { transactions: Transaction[]; splits: Split[]; dividends: Dividend[]; bars: Record<string, PriceBar[]> }): DripResult {
-  if (!input.dividends.length) return { transactions: input.transactions, reinvestments: [], cash: [] };
+export function reinvestDividends(input: { transactions: Transaction[]; splits: Split[]; dividends: Dividend[]; bars: Record<string, PriceBar[]>; /** False: dividends are paid as cash and buy nothing. Default true. */ reinvest?: boolean }): DripResult {
+  if (!input.dividends.length || input.reinvest === false) return { transactions: input.transactions, reinvestments: [], cash: [] };
 
   // Shares per (account, ticker): everything held, and the part that was entered by hand.
   const held = new Map<string, Map<string, { total: number; entered: number }>>();
