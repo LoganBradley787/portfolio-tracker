@@ -1,5 +1,5 @@
 // The top bar: the five areas, then the accounts lens, the price status,
-// Refresh and Settings. No wordmark: the first area is the home page.
+// Refresh and Settings, in words. No wordmark: the first area is the home page.
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { when } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
@@ -78,15 +78,6 @@ function AccountPicker() {
   );
 }
 
-function GearIcon() {
-  return (
-    <svg aria-hidden viewBox="0 0 20 20" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="10" cy="10" r="2.6" />
-      <path d="M10 2.5v2.1M10 15.4v2.1M2.5 10h2.1M15.4 10h2.1M4.7 4.7l1.5 1.5M13.8 13.8l1.5 1.5M4.7 15.3l1.5-1.5M13.8 6.2l1.5-1.5" />
-    </svg>
-  );
-}
-
 export function Header() {
   const { info, refresh } = useRefresh();
   const { pathname } = useLocation();
@@ -121,11 +112,9 @@ export function Header() {
           )}
           <NavLink
             to="/settings"
-            aria-label="Settings"
-            title="Settings"
-            className={({ isActive }) => `-mr-2 inline-flex size-8 items-center justify-center rounded transition-colors ${isActive ? 'bg-ink text-bg' : 'text-muted hover:bg-surface-2 hover:text-ink'}`}
+            className={({ isActive }) => `-mr-2 inline-flex h-7 items-center rounded px-2.5 text-[13px] font-semibold transition-colors duration-150 ${isActive ? 'bg-ink text-bg' : 'text-muted hover:bg-surface-2 hover:text-ink'}`}
           >
-            <GearIcon />
+            Settings
           </NavLink>
         </div>
       </div>

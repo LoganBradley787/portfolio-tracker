@@ -4,7 +4,7 @@ The visual system of the built UI (`client/src`). A personal brokerage statement
 
 ## Structure
 - Five areas in the top bar, in order of how often they are read: Holdings, Performance, Outlook, Activity, Data. Each area is a row of tabs under the top bar (`PageHeader`), and each tab is one page that answers one question. Pages are built to fit a screen or so; a page never stacks unrelated sections.
-- There is no wordmark. The first area is the home page, and the gear at the right opens Settings for the choices that change every figure but are rarely touched (the cost basis method).
+- There is no wordmark. The first area is the home page, and Settings, in words at the right, opens the choices that change every figure but are rarely touched (cost basis, dividend reinvestment, how figures are shown). No icons in the top bar: a cog drawn small reads as a sun.
 - The page runs the full width of the window with a fixed side margin; nothing is centred in a column.
 - Page-level controls (the date range, All / Stocks / ETFs, a search box, the benchmark to compare with) sit on the same rule as the tabs, at the right.
 - The account chips are the one global lens and live in the top bar.

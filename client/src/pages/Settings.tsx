@@ -1,5 +1,5 @@
 // Settings: the few choices that change how every number is computed or
-// shown. Rarely touched, so they live behind the gear, not in the top bar.
+// shown. Rarely touched, so they live on their own page, not in the top bar.
 import { useState, type ReactNode } from 'react';
 import { Button, inputClass, PageTitle, Segmented } from '../components/ui.tsx';
 import type { Display } from '../lib/display.ts';
