@@ -4,7 +4,7 @@ A local, single-user replacement for the Google Sheets stock tracker. It keeps y
 
 Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and to Yahoo Finance the ticker of each stock without a sector and of each ETF you hold (for its sector breakdown and expense ratio). Portfolio amounts, share counts, and exposure calculations stay on your machine.
 
-![Overview: totals, the value chart, what moved, holdings and sector allocation](assets/screenshots/overview.png)
+![Overview: totals, the value chart, what moved and the holdings table](assets/screenshots/overview.png)
 
 The screenshots here show the invented sample portfolio in `tests/fixtures/sample/`, running on the demo server described below.
 
@@ -97,11 +97,13 @@ The top bar has five areas; each area has a row of tabs, and each tab is one pag
 
 The old page addresses (`/realized`, `/transactions`, `/activity/transactions`, `/fees`, `/health`, `/securities`) redirect to their new homes.
 
+![Chart: the whole history with buys, sells and dividends marked; drag to zoom, scroll to pan](assets/screenshots/chart.png)
+
 | Performance | Outlook |
 | --- | --- |
-| ![Performance: returns against SPY and QQQ, and stocks versus ETFs](assets/screenshots/performance.png) | ![Outlook: the range of possible future values](assets/screenshots/outlook.png) |
+| ![Performance: returns against SPY and QQQ, the same money in each benchmark, and stocks, ETFs and accounts against the chosen one](assets/screenshots/performance.png) | ![Outlook: the range of possible future values, and when a target is likely to be reached](assets/screenshots/outlook.png) |
 
-![Ticker detail: the position, a sale preview and the price chart with trade markers](assets/screenshots/ticker.png)
+![Ticker detail: the position, the price chart with trade markers, and the entered transactions](assets/screenshots/ticker.png)
 
 ### What moved
 
