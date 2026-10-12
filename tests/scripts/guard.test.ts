@@ -34,6 +34,17 @@ describe('commit guard', () => {
     expect(check('tests/fixtures/meta_ZZZZ.json', '{}', ['ZZZZ'])).toHaveLength(1);
   });
 
+  it('skips the word check for an image but still checks its name and scans it for a secret', () => {
+    const png = '\x89PNG IHDR Example';
+    expect(check('assets/screenshots/a.png', png, ['Example'])).toEqual([]);
+    expect(check('assets/screenshots/a.PNG', png, ['Example'])).toEqual([]);
+    expect(check('assets/screenshots/a.png', png + 's3cretvalue123', ['Example'], ['s3cretvalue123'])).toEqual([
+      'assets/screenshots/a.png: contains a secret from .env',
+    ]);
+    expect(check('assets/Example.png', png, ['Example'])).toHaveLength(1);
+    expect(check('assets/a.svg', '<text>Example</text>', ['Example'])).toHaveLength(1);
+  });
+
   it('finds a secret anywhere and never prints it', () => {
     const problems = check('a.ts', 'url?token=s3cretvalue123', [], ['s3cretvalue123']);
     expect(problems).toEqual(['a.ts: contains a secret from .env']);

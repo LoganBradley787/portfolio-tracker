@@ -12,6 +12,11 @@ export interface GuardInput {
 const FORBIDDEN_FOLDERS = ['local-notes/', 'data/'];
 const FORBIDDEN_EXTENSIONS = ['.db', '.db-wal', '.db-shm', '.sqlite', '.sqlite3', '.xlsx', '.xls'];
 
+/** Screenshots and icons: binary, so the private-word check does not apply to their contents. */
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico'];
+
+const fileName = (path: string) => (path.split('/').pop() ?? path).toLowerCase();
+
 function forbiddenPath(path: string): string | null {
   const name = path.split('/').pop() ?? path;
   if ((name === '.env' || name.startsWith('.env.')) && name !== '.env.example') return 'environment file';
@@ -41,6 +46,9 @@ export function findProblems({ files, words, secrets }: GuardInput): string[] {
       if (re.test(path)) problems.push(`${path}: file name contains the private word "${word}"`);
     }
     if (secrets.some((s) => content.includes(s))) problems.push(`${path}: contains a secret from .env`);
+    // An image read as text is noise: a two-letter word turns up in its bytes by chance.
+    // Its name and any secret are still checked above; only the word check is skipped.
+    if (IMAGE_EXTENSIONS.some((e) => fileName(path).endsWith(e))) continue;
     content.split('\n').forEach((line, i) => {
       for (const { word, re } of patterns) {
         if (re.test(line)) problems.push(`${path}:${i + 1}: contains the private word "${word}"`);
