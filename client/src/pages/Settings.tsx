@@ -20,17 +20,17 @@ export default function Settings() {
             value={method}
             onChange={setMethod}
             options={[
-              { value: 'average', label: 'Average cost' },
               { value: 'fifo', label: 'FIFO' },
+              { value: 'average', label: 'Average cost' },
             ]}
           />
         }
       >
         <p>
-          <strong className="font-semibold text-ink">Average cost</strong> pools every purchase of a ticker, the way the spreadsheet does. A sale removes the average.
+          <strong className="font-semibold text-ink">FIFO</strong>, the default, keeps each purchase as its own lot and sells the oldest lot in the account first, which is how most brokers report taxes. Lots and holding periods appear under Activity → Taxes.
         </p>
         <p className="mt-2">
-          <strong className="font-semibold text-ink">FIFO</strong> keeps each purchase as its own lot and sells the oldest lot in the account first, which is how most brokers report taxes. Lots and holding periods appear under Activity → Taxes.
+          <strong className="font-semibold text-ink">Average cost</strong> pools every purchase of a ticker, the way the spreadsheet does. A sale removes the average.
         </p>
         <p className="mt-2">Every cost, gain and realized figure follows this choice. Market value does not change.</p>
       </Setting>

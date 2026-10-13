@@ -22,7 +22,7 @@ describe('ticker detail', () => {
   it('respects account selection and cost method, and never invents FIFO lots for average cost', async () => {
     const { seed, call } = testApp();
     await seed();
-    const avg = (await call('GET', '/api/ticker/SHOP')).body;
+    const avg = (await call('GET', '/api/ticker/SHOP?method=average')).body;
     expect(avg.lots).toBeNull();
     const other = (await call('GET', '/api/ticker/SHOP?account=Brokerage&method=fifo')).body;
     expect(other.holding).toBeNull();

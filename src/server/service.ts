@@ -188,7 +188,7 @@ export function realizedView(ctx: AppContext, opts: { assetType?: AssetType; met
   };
 }
 
-export function healthReport(ctx: AppContext, method: CostMethod = 'average', reinvest = true) {
+export function healthReport(ctx: AppContext, method: CostMethod = 'fifo', reinvest = true) {
   const state = loadState(ctx, undefined, reinvest);
   const ledger: Ledger = runLedger(state.ledgerTransactions, state.splits, { method });
   const calendar = (state.bars.SPY ?? []).map((b) => b.date);

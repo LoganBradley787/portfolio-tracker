@@ -69,7 +69,7 @@ The app notices the file within a few seconds while it is running, or at the nex
 
 ## Pages
 
-The top bar has five areas; each area has a row of tabs, and each tab is one page that answers one question. The account chips in the top bar apply to every figure in the app; **Settings** in the top bar opens the page, where the cost basis method (average cost or FIFO), dividend reinvestment and how figures are shown are chosen. Every explanation lives behind an (i) beside the figure or section it describes.
+The top bar has five areas; each area has a row of tabs, and each tab is one page that answers one question. The account chips in the top bar apply to every figure in the app; **Settings** in the top bar opens the page, where the cost basis method (FIFO by default, or average cost), dividend reinvestment and how figures are shown are chosen. Every explanation lives behind an (i) beside the figure or section it describes.
 
 - **Holdings**
   - **Overview**: market value with today's move, a ruled row of cost, unrealized, realized, dividends and total return, the value chart over a date range, **What moved** beside it (day, week, month, year or all time), and the holdings table (sortable; All / Stocks / ETFs). Banners for oversells, failed refreshes and holdings without a live price.
@@ -123,7 +123,7 @@ On the Overview, **What moved** lists each holding's dollar gain over the last d
 - **Accounts side by side** appears when more than one account is selected. Each account is replayed independently. Returns are not additive; average-cost basis is computed separately for each account, while the combined view pools basis across selected accounts.
 - **Your benchmark**, below the return chart on Performance → Returns, saves one additional ticker in the local database. It joins the standard benchmarks in the refresh queue and shares the existing request budget. Removing it stops benchmark refreshes (a ticker you hold still refreshes as a holding). Splits and dividends are included. A ticker whose history starts after your trades is omitted from the same-money comparison; choose a later chart range to compare its return line. Invalid or unresolved symbols are shown on Data → Health. Version 2 adds the saved selection table and a flag so a benchmark-only ticker takes its asset type from its first trade or manual edit, with the usual backup before migration.
 
-The cost basis setting (Settings, top right) changes every figure between **Avg cost** (the sheet's method, pooled per ticker across accounts) and **FIFO** (lots kept per account and ticker).
+The cost basis setting (Settings, top right) changes every figure between **FIFO** (the default: lots kept per account and ticker, as brokers report taxes; `?method=` absent or `fifo`) and **Avg cost** (the sheet's method, pooled per ticker across accounts; `?method=average`).
 
 ### Underlying ETF exposure
 

@@ -176,6 +176,22 @@ describe('rangeSummary (spec 13.2)', () => {
     const r = rangeSummary(s, '2020-03-14', '2020-03-15'); // a weekend: nothing in range
     expect(r.days).toBe(0);
     expect(r.gain).toBe(0);
+    expect(r.returnPct).toBeNull();
+  });
+
+  it('carries the time-weighted return, so the Overview agrees with What moved', () => {
+    const rising = dailySeries({
+      transactions: [tx(1, '2020-03-11', 'Buy', 2, 10)],
+      splits: [],
+      bars: { AAA: spyDates.filter((d) => d >= '2020-03-02' && d <= '2020-03-31').map((date, i) => ({ date, close: 10 + i })) },
+      quotes: {},
+      calendar: buildCalendar(spyDates, '2020-03-09', '2020-03-31'),
+    });
+    const r = rangeSummary(rising, '2020-03-12', '2020-03-31');
+    const startValue = r.startValue;
+    expect(startValue).toBeGreaterThan(0);
+    expect(r.returnPct).toBeCloseTo(r.endValue / startValue - 1, 10);
+    expect(rangeSummary(s, '2020-03-02', '2020-03-10').returnPct).toBeNull(); // nothing held yet
   });
 });
 

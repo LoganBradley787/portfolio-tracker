@@ -235,12 +235,12 @@ describe('securities and refresh', () => {
   });
 });
 
-describe('FIFO via ?method=fifo', () => {
+describe('FIFO by default, average cost via ?method=average', () => {
   it('gives the same sample numbers and a tax-year view', async () => {
     const { call, seed } = testApp();
     await seed(['DIS\tStock\tSell\t10\t\t120\t6/1/2021\tMain']);
-    const avg = (await call('GET', '/api/realized')).body;
-    const fifo = (await call('GET', '/api/realized?method=fifo')).body;
+    const avg = (await call('GET', '/api/realized?method=average')).body;
+    const fifo = (await call('GET', '/api/realized')).body;
     expect(avg.taxYears).toBeNull();
     // FIFO in the Main account: the 2020-03-10 lot at 111.46.
     const dis = fifo.sales.find((s: any) => s.ticker === 'DIS');
@@ -249,8 +249,9 @@ describe('FIFO via ?method=fifo', () => {
     const y2021 = fifo.taxYears.find((y: any) => y.year === 2021);
     expect(y2021.longTerm.gain).toBeCloseTo(10 * 120 - 1114.6, 9);
     expect(y2021.shortTerm.gain).toBeCloseTo(170.88, 6);
-    const p = (await call('GET', '/api/portfolio?method=fifo')).body;
+    const p = (await call('GET', '/api/portfolio')).body;
     expect(p.method).toBe('fifo');
+    expect((await call('GET', '/api/portfolio?method=average')).body.method).toBe('average');
     expect(p.totals.cost).toBeCloseTo(12627.46 - 1114.6 + (await reinvested(call)).cost, 6);
   });
 });

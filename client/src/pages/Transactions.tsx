@@ -10,6 +10,7 @@ import { date, money, shares } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
 import { useApi } from '../lib/useApi.ts';
 import { useAccount } from '../lib/account.tsx';
+import { display } from '../lib/display.ts';
 
 type Row = Transaction & { assetType: 'Stock' | 'ETF' };
 interface ListResponse {
@@ -81,7 +82,15 @@ export default function Transactions() {
         </div>
       )}
 
-      {panel.kind === 'form' && (
+      {panel.kind === 'form' && panel.editing && display.get().mode !== 'real' && (
+        // The form would show the row's real share count, which hidden and scaled figures exist to keep off the screen.
+        <div className="mb-8">
+          <Notice title="Figures are adjusted, so rows cannot be edited" action={<Button size="sm" variant="ghost" onClick={() => setPanel({ kind: 'none' })}>Dismiss</Button>}>
+            Choose “As they are” under Settings → Figures to edit this row.
+          </Notice>
+        </div>
+      )}
+      {panel.kind === 'form' && !(panel.editing && display.get().mode !== 'real') && (
         <TransactionForm
           key={panel.editing?.id ?? 'new'}
           editing={panel.editing}

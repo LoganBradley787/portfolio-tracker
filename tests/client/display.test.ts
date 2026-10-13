@@ -34,9 +34,9 @@ describe('figures shown hidden or scaled', () => {
   });
 
   it('sends drip=off alongside the cost method on calculation requests only', () => {
-    expect(withMethod('/api/portfolio', 'average', false)).toBe('/api/portfolio?drip=off');
-    expect(withMethod('/api/series?from=2026-01-01', 'fifo', false)).toBe('/api/series?from=2026-01-01&method=fifo&drip=off');
+    expect(withMethod('/api/portfolio', 'fifo', false)).toBe('/api/portfolio?drip=off');
+    expect(withMethod('/api/series?from=2026-01-01', 'average', false)).toBe('/api/series?from=2026-01-01&method=average&drip=off');
     expect(withMethod('/api/config', 'fifo', false)).toBe('/api/config');
-    expect(withMethod('/api/movers', 'average', true)).toBe('/api/movers');
+    expect(withMethod('/api/movers', 'fifo', true)).toBe('/api/movers');
   });
 });

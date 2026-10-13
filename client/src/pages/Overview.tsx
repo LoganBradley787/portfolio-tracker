@@ -286,17 +286,16 @@ function ValueChart() {
   const { data } = useApi<{
     firstDate: string | null;
     days: { date: string; value: number; incomplete: boolean }[];
-    summary: { from: string | null; to: string | null; startValue: number; gain: number };
+    summary: { from: string | null; to: string | null; gain: number; returnPct: number | null };
   }>(today ? `/api/series${rangeQuery(range, today)}` : null);
   const c = useChartColors();
   const s = data?.summary;
-  const returnPct = s && s.startValue > 0 ? s.gain / s.startValue : null;
   return (
     <Section
       flush
       className="flex min-h-0 flex-col"
       title="Value"
-      info="Market value of the selected accounts at each day’s close. The gain over the range counts dividends and leaves out money added or taken out. For trades, dividends and zooming, use the Chart tab."
+      info="Market value of the selected accounts at each day’s close. The gain over the range counts dividends and leaves out money added or taken out; the percent is the time-weighted return, the same figure What moved and Performance use. For trades, dividends and zooming, use the Chart tab."
       aside={<RangeSelector value={range} onChange={setRange} min={data?.firstDate} max={today} compact />}
     >
       <p className="tnum mb-3 flex flex-wrap items-baseline gap-x-3 text-[14px]">
@@ -304,7 +303,7 @@ function ValueChart() {
           <>
             <span className={`text-[20px] font-semibold ${tone(s!.gain)}`}>
               {money(s!.gain, { signed: true })}
-              {returnPct !== null && <span className="ml-2 font-medium">({pct(returnPct)})</span>}
+              {s!.returnPct !== null && <span className="ml-2 font-medium">({pct(s!.returnPct)})</span>}
             </span>
             <span className="text-muted">{date(s!.from)} – {date(s!.to)}</span>
           </>

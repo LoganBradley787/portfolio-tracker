@@ -4,6 +4,7 @@
 // No adjusted prices anywhere; splits change share counts on their ex-date.
 import { makeStrategy } from './costBasis.ts';
 import { orderEvents } from './replay.ts';
+import { investedMask, twrIndex } from './returns.ts';
 import { ZERO_SHARES, type CostMethod, type Dividend, type PriceBar, type Quote, type Split, type Transaction } from './types.ts';
 
 export interface TickerDay {
@@ -184,12 +185,14 @@ export interface RangeSummary {
   reinvested: number;
   /** V_end − V_start − buys + sells + dividends paid out as cash. */
   gain: number;
+  /** Time-weighted return over the range, the same figure What moved and Performance show; null when nothing was invested. */
+  returnPct: number | null;
 }
 
 /** Gain over [from, to] inclusive, using the spec 13.2 convention. */
 export function rangeSummary(series: DayPoint[], from: string, to: string): RangeSummary {
   const inRange = series.filter((p) => p.date >= from && p.date <= to);
-  if (!inRange.length) return { from: null, to: null, days: 0, startValue: 0, endValue: 0, buys: 0, sells: 0, dividends: 0, reinvested: 0, gain: 0 };
+  if (!inRange.length) return { from: null, to: null, days: 0, startValue: 0, endValue: 0, buys: 0, sells: 0, dividends: 0, reinvested: 0, gain: 0, returnPct: null };
   const before = series.filter((p) => p.date < inRange[0].date).at(-1);
   const startValue = before?.value ?? 0;
   const endValue = inRange[inRange.length - 1].value;
@@ -197,6 +200,9 @@ export function rangeSummary(series: DayPoint[], from: string, to: string): Rang
   const sells = inRange.reduce((a, p) => a + p.sells, 0);
   const dividends = inRange.reduce((a, p) => a + p.dividends, 0);
   const reinvested = inRange.reduce((a, p) => a + p.reinvested, 0);
+  const mask = investedMask(series);
+  const invested = series.some((p, i) => mask[i] && p.date >= inRange[0].date && p.date <= inRange[inRange.length - 1].date);
+  const index = invested ? twrIndex(series, inRange[0].date, inRange[inRange.length - 1].date) : [];
   return {
     from: inRange[0].date,
     to: inRange[inRange.length - 1].date,
@@ -208,5 +214,6 @@ export function rangeSummary(series: DayPoint[], from: string, to: string): Rang
     dividends,
     reinvested,
     gain: endValue - startValue - buys + sells + dividends - reinvested,
+    returnPct: index.length ? index[index.length - 1].index - 1 : null,
   };
 }

@@ -5,8 +5,9 @@ export function assetTypeParam(v: string | undefined): AssetType | undefined {
   return v === 'Stock' || v === 'ETF' ? v : undefined;
 }
 
+/** `?method=average`: pooled average cost. Anything else: FIFO, the default. */
 export function methodParam(v: string | undefined): CostMethod {
-  return v === 'fifo' ? 'fifo' : 'average';
+  return v === 'average' ? 'average' : 'fifo';
 }
 
 /** `?drip=off`: dividends are cash, not reinvested. Anything else: reinvested. */

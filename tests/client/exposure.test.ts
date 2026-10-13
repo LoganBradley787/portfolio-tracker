@@ -30,7 +30,8 @@ function data() {
 
 describe('Exposure page', () => {
   it('sends the selected accounts and cost method to the exposure API', () => {
-    expect(withAccount(withMethod('/api/exposure', 'fifo'), ['One', 'Two'])).toBe('/api/exposure?method=fifo&account=One&account=Two');
+    expect(withAccount(withMethod('/api/exposure', 'average'), ['One', 'Two'])).toBe('/api/exposure?method=average&account=One&account=Two');
+    expect(withAccount(withMethod('/api/exposure', 'fifo'), ['One'])).toBe('/api/exposure?account=One');
     expect(withAccount('/api/exposure', null)).toBe('/api/exposure');
   });
   it('shows dated estimates, coverage, unsupported funds, unknown weights, and expandable contributions', () => {

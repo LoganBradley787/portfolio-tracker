@@ -15,7 +15,7 @@ export function loadLedgerState(q: Queries, accounts?: string[], reinvest = true
   return { transactions, splits, dividends, bars, drip, ledgerTransactions: drip.transactions };
 }
 
-export function currentLedger(q: Queries, accounts?: string[], method: CostMethod = 'average', reinvest = true) {
+export function currentLedger(q: Queries, accounts?: string[], method: CostMethod = 'fifo', reinvest = true) {
   const state = loadLedgerState(q, accounts, reinvest);
   const ledger = runLedger(state.ledgerTransactions, state.splits, { method, dividends: state.dividends });
   return { state, ledger };

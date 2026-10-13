@@ -13,7 +13,7 @@ interface Settings {
   setReinvest: (on: boolean) => void;
 }
 
-const MethodContext = createContext<Settings>({ method: 'average', setMethod: () => {}, reinvest: true, setReinvest: () => {} });
+const MethodContext = createContext<Settings>({ method: 'fifo', setMethod: () => {}, reinvest: true, setReinvest: () => {} });
 
 const read = (key: string): string | null => {
   try {
@@ -31,9 +31,11 @@ const write = (key: string, value: string) => {
 };
 
 export function MethodProvider({ children }: { children: ReactNode }) {
-  const [method, setMethod] = useState<Method>(() => (read('costMethod') === 'fifo' ? 'fifo' : 'average'));
+  // FIFO unless average cost was chosen. The key changed when the default did, so a browser that
+  // only ever held the old default starts on FIFO like a new one.
+  const [method, setMethod] = useState<Method>(() => (read('costBasis') === 'average' ? 'average' : 'fifo'));
   const [reinvest, setReinvest] = useState<boolean>(() => read('reinvestDividends') !== 'off');
-  useEffect(() => write('costMethod', method), [method]);
+  useEffect(() => write('costBasis', method), [method]);
   useEffect(() => write('reinvestDividends', reinvest ? 'on' : 'off'), [reinvest]);
   return <MethodContext.Provider value={{ method, setMethod, reinvest, setReinvest }}>{children}</MethodContext.Provider>;
 }
@@ -42,10 +44,10 @@ export const useMethod = () => useContext(MethodContext);
 
 const CALCULATED = ['/api/portfolio', '/api/exposure', '/api/realized', '/api/series', '/api/performance', '/api/health-report', '/api/ticker/', '/api/movers', '/api/outlook'];
 
-/** Adds `method=fifo` and `drip=off` to calculation endpoints when chosen. */
+/** Adds `method=average` and `drip=off` to calculation endpoints when chosen; FIFO and reinvesting are the defaults. */
 export function withMethod(path: string, method: Method, reinvest = true): string {
   if (!CALCULATED.some((p) => path.startsWith(p))) return path;
-  const params = [...(method === 'fifo' ? ['method=fifo'] : []), ...(reinvest ? [] : ['drip=off'])];
+  const params = [...(method === 'average' ? ['method=average'] : []), ...(reinvest ? [] : ['drip=off'])];
   if (!params.length) return path;
   return path + (path.includes('?') ? '&' : '?') + params.join('&');
 }
