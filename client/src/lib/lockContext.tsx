@@ -80,9 +80,7 @@ function LockScreen({ onUnlocked }: { onUnlocked: () => void }) {
           autoComplete="current-password"
           aria-label="Password"
           aria-invalid={wrong || undefined}
-          className={`h-10 w-64 rounded border bg-surface px-3 text-[15px] text-ink focus:outline-none focus:ring-2 ${
-            wrong ? 'border-loss focus:ring-loss/20' : 'border-rule-strong/70 focus:border-accent focus:ring-accent/20'
-          }`}
+          className={`lock-box h-10 w-64 rounded border bg-surface px-3 text-[15px] text-ink ${wrong ? 'border-loss' : 'border-rule-strong/70 focus:border-ink'}`}
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);

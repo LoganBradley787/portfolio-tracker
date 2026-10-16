@@ -118,6 +118,14 @@ body {
   border-radius: 3px;
 }
 
+/* The password box: black, not the accent; red once the password was wrong. */
+.lock-box:focus-visible {
+  outline-color: var(--ink);
+}
+.lock-box[aria-invalid='true']:focus-visible {
+  outline-color: var(--loss);
+}
+
 /* Native controls on the page ground. */
 input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0.5;
