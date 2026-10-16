@@ -118,12 +118,9 @@ body {
   border-radius: 3px;
 }
 
-/* The password box: black, not the accent; red once the password was wrong. */
+/* The password box shows focus by its own border turning black, with no second outline. */
 .lock-box:focus-visible {
-  outline-color: var(--ink);
-}
-.lock-box[aria-invalid='true']:focus-visible {
-  outline-color: var(--loss);
+  outline: none;
 }
 
 /* Native controls on the page ground. */
