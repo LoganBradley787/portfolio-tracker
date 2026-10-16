@@ -16,6 +16,7 @@ const ctx = createContext({
   dbPath,
   apiKey: process.env.TIINGO_API_KEY?.trim() || null,
   inboxDir: process.env.PORTFOLIO_INBOX ?? join(dirname(dbPath), 'inbox'),
+  passwordFile: join(dirname(dbPath), 'password'),
 });
 ctx.inbox?.start();
 const app = createApp(ctx);

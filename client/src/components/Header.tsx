@@ -1,8 +1,9 @@
 // The top bar: the five areas, then the accounts lens, the price status,
-// Refresh and Settings, in words. No wordmark: the first area is the home page.
+// Refresh, Lock (red, only while a password is set) and Settings, in words. No wordmark: the first area is the home page.
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { when } from '../lib/format.ts';
 import { useRefresh } from '../lib/refresh.tsx';
+import { useLock } from '../lib/lockContext.tsx';
 import { Button } from './ui.tsx';
 import { useAccount } from '../lib/account.tsx';
 
@@ -80,6 +81,7 @@ function AccountPicker() {
 
 export function Header() {
   const { info, refresh } = useRefresh();
+  const lock = useLock();
   const { pathname } = useLocation();
   const current = (a: (typeof AREAS)[number]) => a.match.some((m) => (m === '/' ? pathname === '/' : pathname === m || pathname.startsWith(m + '/')));
   const running = info?.status.state === 'running';
@@ -109,6 +111,15 @@ export function Header() {
             <Button size="sm" variant="ghost" onClick={() => void refresh()} busy={running}>
               {running ? 'Refreshing…' : 'Refresh'}
             </Button>
+          )}
+          {lock.on && (
+            <button
+              type="button"
+              onClick={() => void lock.lock()}
+              className="inline-flex h-7 items-center rounded px-2.5 text-[13px] font-semibold text-loss transition-colors duration-150 hover:bg-loss-soft"
+            >
+              Lock
+            </button>
           )}
           <NavLink
             to="/settings"

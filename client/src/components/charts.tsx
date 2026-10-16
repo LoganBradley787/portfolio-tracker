@@ -90,10 +90,9 @@ export function axisTicks(rows: Row[]): { ticks: string[]; format: (d: string) =
   return { ticks, format };
 }
 
-/** Compact dollars for an axis: $950, $12.5k, $1.2M. Blank when figures are hidden; scaled with them. */
+/** Compact dollars for an axis: $950, $12.5k, $1.2M. Blank when figures are hidden. */
 export function axisMoney(v: number): string {
   if (display.hidden()) return '';
-  v *= display.factor();
   const a = Math.abs(v);
   const sign = v < 0 ? '−' : '';
   if (a >= 1e6) return `${sign}$${+(a / 1e6).toFixed(1)}M`;

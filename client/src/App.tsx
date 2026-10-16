@@ -4,6 +4,7 @@ import { RefreshProvider } from './lib/refresh.tsx';
 import { MethodProvider } from './lib/method.tsx';
 import { AccountProvider } from './lib/account.tsx';
 import { DisplayProvider } from './lib/displayContext.tsx';
+import { LockGate } from './lib/lockContext.tsx';
 import Overview from './pages/Overview.tsx';
 import Chart from './pages/Chart.tsx';
 import Allocation from './pages/Allocation.tsx';
@@ -19,6 +20,7 @@ import { Empty } from './components/ui.tsx';
 
 export default function App() {
   return (
+    <LockGate>
     <RefreshProvider>
       <MethodProvider>
       <AccountProvider>
@@ -75,5 +77,6 @@ export default function App() {
       </AccountProvider>
       </MethodProvider>
     </RefreshProvider>
+    </LockGate>
   );
 }

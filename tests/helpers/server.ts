@@ -15,6 +15,7 @@ export function testApp(opts: { fake?: FakeOptions; apiKey?: string | null } = {
   const fake = fakeTiingo(opts.fake);
   const ctx = createContext({
     dbPath: join(dir, 'portfolio.db'),
+    passwordFile: join(dir, 'password'),
     apiKey: opts.apiKey === undefined ? 'test-key' : opts.apiKey,
     fetchFn: fake.fetchFn,
     now: () => NOW,

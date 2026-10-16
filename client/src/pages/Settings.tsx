@@ -5,6 +5,7 @@ import { Button, inputClass, PageTitle, Segmented } from '../components/ui.tsx';
 import type { Display } from '../lib/display.ts';
 import { useDisplay } from '../lib/displayContext.tsx';
 import { useMethod, type Method } from '../lib/method.tsx';
+import { useLock } from '../lib/lockContext.tsx';
 
 export default function Settings() {
   const { method, setMethod, reinvest, setReinvest } = useMethod();
@@ -60,80 +61,87 @@ export default function Settings() {
       </Setting>
 
       <FiguresSetting />
+      <PasswordSetting />
     </div>
   );
 }
 
-/**
- * Real, hidden or scaled figures. Once hidden or scaled, this page says only
- * that they are adjusted, never how, so the setting cannot be read off the
- * screen by someone being shown the app.
- */
+/** Real or hidden figures. */
 function FiguresSetting() {
   const { display, setDisplay } = useDisplay();
-  const adjusted = display.mode !== 'real';
-  const [choice, setChoice] = useState<Display['mode'] | null>(adjusted ? null : 'real');
-  const [factorText, setFactorText] = useState('');
-  const factor = Number(factorText.replace(/[x×,\s]/g, ''));
-  const factorOk = factorText.trim() !== '' && Number.isFinite(factor) && factor > 0;
-  const choose = (mode: Display['mode']) => {
-    setChoice(mode);
-    if (mode === 'real') setDisplay({ mode: 'real' });
-    if (mode === 'hidden') setDisplay({ mode: 'hidden' });
-  };
-  const apply = () => {
-    if (!factorOk) return;
-    setDisplay({ mode: 'scaled', factor });
-    setFactorText('');
-    // Nothing stays selected: the page must not say which adjustment is on.
-    setChoice(null);
-  };
   return (
     <Setting
       title="Figures"
       control={
-        <div className="space-y-3">
-          <Segmented<Display['mode']>
-            label="How figures are shown"
-            size="md"
-            value={choice}
-            onChange={choose}
-            options={[
-              { value: 'real', label: 'As they are' },
-              { value: 'hidden', label: 'Hidden' },
-              { value: 'scaled', label: 'Scaled' },
-            ]}
-          />
-          {choice === 'scaled' && (
-            <form
-              className="flex items-center gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                apply();
-              }}
-            >
-              <input
-                className={`${inputClass} num w-28`}
-                inputMode="decimal"
-                aria-label="Multiply every figure by"
-                placeholder="e.g. 10"
-                value={factorText}
-                onChange={(e) => setFactorText(e.target.value)}
-              />
-              <Button type="submit" variant="primary" disabled={!factorOk}>
-                Apply
-              </Button>
-            </form>
-          )}
-          {adjusted && <p className="text-[13px] font-semibold text-warn">Figures are adjusted.</p>}
-        </div>
+        <Segmented<Display['mode']>
+          label="How figures are shown"
+          size="md"
+          value={display.mode}
+          onChange={(mode) => setDisplay({ mode })}
+          options={[
+            { value: 'real', label: 'As they are' },
+            { value: 'hidden', label: 'Hidden' },
+          ]}
+        />
       }
     >
-      <p>For showing the app to someone else. Dollar amounts and share counts follow this choice everywhere; prices, percentages and dates are public and never change.</p>
-      <p className="mt-2">
-        <strong className="font-semibold text-ink">Hidden</strong> replaces every amount with dots and leaves the percentages. <strong className="font-semibold text-ink">Scaled</strong> multiplies every amount by a number you type here, so the shapes are real and the sizes are not.
-      </p>
-      <p className="mt-2">Once set, this page says only that figures are adjusted, not how. Choose “As they are” to show them again. The choice stays in this browser.</p>
+      <p>For showing the app to someone else. <strong className="font-semibold text-ink">Hidden</strong> replaces every dollar amount and share count with dots; prices, percentages and dates are public and stay. The Outlook is not shown while figures are hidden. The choice stays in this browser.</p>
+    </Setting>
+  );
+}
+
+/**
+ * The optional password. Off unless the owner sets one; then the app asks for
+ * it in every new tab. Plain text in data/password, so it is easy to read or
+ * delete when forgotten. It is a courtesy against a glance, not security.
+ */
+function PasswordSetting() {
+  const { on, setPassword, turnOff } = useLock();
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+      setText('');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Setting
+      title="Password"
+      control={
+        on ? (
+          <div className="space-y-2">
+            <p className="text-[13px] font-semibold text-loss">A password is set.</p>
+            <Button onClick={() => void run(turnOff)} busy={busy}>
+              Turn off
+            </Button>
+          </div>
+        ) : (
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (text.trim()) void run(() => setPassword(text.trim()));
+            }}
+          >
+            <input className={`${inputClass} w-44`} type="password" autoComplete="new-password" aria-label="New password" placeholder="Password" value={text} onChange={(e) => setText(e.target.value)} />
+            <Button type="submit" variant="primary" disabled={!text.trim()} busy={busy}>
+              Set
+            </Button>
+          </form>
+        )
+      }
+    >
+      <p>Off unless you set one. With a password, every new tab shows a blank page with one box; the right password opens the app, and closing the tab locks it again. <strong className="font-semibold text-ink">Lock</strong> in the top bar locks this tab now.</p>
+      <p className="mt-2">This keeps someone at your computer from opening the page and reading everything at a glance; it is not security. The password is kept as plain text in <code>data/password</code>, so if you forget it, read or delete that file.</p>
+      {error && <p className="mt-2 text-[13px] font-semibold text-loss">{error}</p>}
     </Setting>
   );
 }

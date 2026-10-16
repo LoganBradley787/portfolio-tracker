@@ -10,6 +10,7 @@ import { SectorFill } from '../market/sectorFill.ts';
 import { FundSectorCache } from '../market/fundSectorCache.ts';
 import { YahooProfileProvider, type FundSectorProvider, type ProfileProvider } from '../market/yahoo.ts';
 import { Inbox } from './inbox.ts';
+import { Lock } from './lock.ts';
 
 export interface AppContext {
   q: Queries;
@@ -19,6 +20,8 @@ export interface AppContext {
   fundSectors: FundSectorCache;
   /** The drop folder, when one is configured. */
   inbox: Inbox | null;
+  /** The optional password. */
+  lock: Lock;
   now: () => Date;
   /** Today's date in New York. */
   today: () => string;
@@ -37,6 +40,8 @@ export interface ContextOptions {
   backupDir?: string;
   /** Folder watched for broker exports to import. None unless given. */
   inboxDir?: string;
+  /** Where the optional password is kept. None: the app cannot be locked. */
+  passwordFile?: string;
   /** Start background refreshes on page loads. Off in tests. */
   autoRefresh?: boolean;
 }
@@ -64,6 +69,7 @@ export function createContext(opts: ContextOptions): AppContext {
     fundHoldings,
     sectors,
     fundSectors,
+    lock: new Lock(opts.passwordFile ?? null),
     inbox: opts.inboxDir ? new Inbox({ dir: opts.inboxDir, q, now, backupDir, onImported: () => cache.maybeRefresh() }) : null,
     now,
     today: () => easternDate(now()),

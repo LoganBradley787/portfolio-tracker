@@ -6,7 +6,7 @@ import { withMethod } from '../../client/src/lib/method.tsx';
 
 afterEach(() => display.set({ mode: 'real' }));
 
-describe('figures shown hidden or scaled', () => {
+describe('figures shown or hidden', () => {
   it('shows amounts and share counts as they are by default', () => {
     expect(money(1234.5)).toBe('$1,234.50');
     expect(shares(10.5)).toBe('10.5');
@@ -21,16 +21,6 @@ describe('figures shown hidden or scaled', () => {
     expect(axisMoney(12_500)).toBe('');
     expect(pct(0.1234)).toBe('+12.34%');
     expect(money(99.5, { asIs: true })).toBe('$99.50');
-  });
-
-  it('multiplies amounts and share counts by the factor, prices untouched', () => {
-    display.set({ mode: 'scaled', factor: 10 });
-    expect(money(1234.5)).toBe('$12,345.00');
-    expect(money(-50, { signed: true })).toBe('−$500.00');
-    expect(shares(10.5)).toBe('105');
-    expect(axisMoney(12_500)).toBe('$125k');
-    expect(money(99.5, { asIs: true })).toBe('$99.50');
-    expect(pct(0.1)).toBe('+10.00%');
   });
 
   it('sends drip=off alongside the cost method on calculation requests only', () => {

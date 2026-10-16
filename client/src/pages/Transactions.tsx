@@ -11,6 +11,7 @@ import { useRefresh } from '../lib/refresh.tsx';
 import { useApi } from '../lib/useApi.ts';
 import { useAccount } from '../lib/account.tsx';
 import { display } from '../lib/display.ts';
+import { unlock } from '../lib/lock.ts';
 
 type Row = Transaction & { assetType: 'Stock' | 'ETF' };
 interface ListResponse {
@@ -58,7 +59,7 @@ export default function Transactions() {
         controls={
           <>
             <a
-              href="/api/export.csv"
+              href={unlock.link('/api/export.csv')}
               download
               className="inline-flex h-7 items-center rounded border border-rule-strong/70 bg-surface px-2 text-[13px] font-medium text-ink hover:bg-surface-2/60"
             >
@@ -83,9 +84,9 @@ export default function Transactions() {
       )}
 
       {panel.kind === 'form' && panel.editing && display.get().mode !== 'real' && (
-        // The form would show the row's real share count, which hidden and scaled figures exist to keep off the screen.
+        // The form would show the row's real share count, which hidden figures exist to keep off the screen.
         <div className="mb-8">
-          <Notice title="Figures are adjusted, so rows cannot be edited" action={<Button size="sm" variant="ghost" onClick={() => setPanel({ kind: 'none' })}>Dismiss</Button>}>
+          <Notice title="Figures are hidden, so rows cannot be edited" action={<Button size="sm" variant="ghost" onClick={() => setPanel({ kind: 'none' })}>Dismiss</Button>}>
             Choose “As they are” under Settings → Figures to edit this row.
           </Notice>
         </div>

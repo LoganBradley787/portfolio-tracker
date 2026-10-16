@@ -15,6 +15,7 @@ const dbPath = process.env.PORTFOLIO_DB ?? 'data/demo.db';
 const ctx = createContext({
   dbPath,
   inboxDir: join(dirname(dbPath), 'demo-inbox'),
+  passwordFile: join(dirname(dbPath), 'demo-password'),
   apiKey: 'fixture',
   fetchFn: fakeTiingo().fetchFn,
   fundHoldingsProvider: {
