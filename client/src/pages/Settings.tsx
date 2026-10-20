@@ -66,26 +66,76 @@ export default function Settings() {
   );
 }
 
-/** Real or hidden figures. */
+/**
+ * Real, hidden or scaled figures. Once hidden or scaled, this page says only
+ * that they are adjusted, never how, so the setting cannot be read off the
+ * screen by someone being shown the app.
+ */
 function FiguresSetting() {
   const { display, setDisplay } = useDisplay();
+  const adjusted = display.mode !== 'real';
+  const [choice, setChoice] = useState<Display['mode'] | null>(adjusted ? null : 'real');
+  const [factorText, setFactorText] = useState('');
+  const factor = Number(factorText.replace(/[x×,\s]/g, ''));
+  const factorOk = factorText.trim() !== '' && Number.isFinite(factor) && factor > 0;
+  const choose = (mode: Display['mode']) => {
+    setChoice(mode);
+    if (mode === 'real') setDisplay({ mode: 'real' });
+    if (mode === 'hidden') setDisplay({ mode: 'hidden' });
+  };
+  const apply = () => {
+    if (!factorOk) return;
+    setDisplay({ mode: 'scaled', factor });
+    setFactorText('');
+    // Nothing stays selected: the page must not say which adjustment is on.
+    setChoice(null);
+  };
   return (
     <Setting
       title="Figures"
       control={
-        <Segmented<Display['mode']>
-          label="How figures are shown"
-          size="md"
-          value={display.mode}
-          onChange={(mode) => setDisplay({ mode })}
-          options={[
-            { value: 'real', label: 'As they are' },
-            { value: 'hidden', label: 'Hidden' },
-          ]}
-        />
+        <div className="space-y-3">
+          <Segmented<Display['mode']>
+            label="How figures are shown"
+            size="md"
+            value={choice}
+            onChange={choose}
+            options={[
+              { value: 'real', label: 'As they are' },
+              { value: 'hidden', label: 'Hidden' },
+              { value: 'scaled', label: 'Scaled' },
+            ]}
+          />
+          {choice === 'scaled' && (
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                apply();
+              }}
+            >
+              <input
+                className={`${inputClass} num w-28`}
+                inputMode="decimal"
+                aria-label="Multiply every figure by"
+                placeholder="e.g. 10"
+                value={factorText}
+                onChange={(e) => setFactorText(e.target.value)}
+              />
+              <Button type="submit" variant="primary" disabled={!factorOk}>
+                Apply
+              </Button>
+            </form>
+          )}
+          {adjusted && <p className="text-[13px] font-semibold text-warn">Figures are adjusted.</p>}
+        </div>
       }
     >
-      <p>For showing the app to someone else. <strong className="font-semibold text-ink">Hidden</strong> replaces every dollar amount and share count with dots; prices, percentages and dates are public and stay. The Outlook is not shown while figures are hidden. The choice stays in this browser.</p>
+      <p>For showing the app to someone else. Dollar amounts and share counts follow this choice everywhere; prices, percentages and dates are public and never change.</p>
+      <p className="mt-2">
+        <strong className="font-semibold text-ink">Hidden</strong> replaces every amount with dots and leaves the percentages. <strong className="font-semibold text-ink">Scaled</strong> multiplies every amount by a number you type here, so the shapes are real and the sizes are not.
+      </p>
+      <p className="mt-2">Once set, this page says only that figures are adjusted, not how. Choose “As they are” to show them again. The choice stays in this browser.</p>
     </Setting>
   );
 }

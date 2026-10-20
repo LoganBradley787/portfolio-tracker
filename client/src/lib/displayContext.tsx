@@ -1,4 +1,4 @@
-// Makes the display setting (real or hidden figures) a React concern:
+// Makes the display setting (real, hidden or scaled figures) a React concern:
 // changing it remounts everything beneath, so every formatted figure follows.
 import { createContext, Fragment, useContext, useState, type ReactNode } from 'react';
 import { display, type Display } from './display.ts';

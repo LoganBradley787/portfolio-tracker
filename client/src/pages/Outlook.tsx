@@ -43,7 +43,8 @@ export default function Outlook() {
       {display.hidden() ? (
         <Empty title="Figures are hidden">The outlook works in dollars. Show figures as they are under Settings to see it.</Empty>
       ) : (
-        <Projection value={data.value} pace={data.pace} today={data.today} />
+        // In scaled mode the projection runs in scaled dollars throughout, so what is typed and shown agree.
+        <Projection value={data.value * display.factor()} pace={{ ...data.pace, monthly: data.pace.monthly * display.factor() }} today={data.today} />
       )}
     </div>
   );

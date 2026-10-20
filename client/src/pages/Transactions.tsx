@@ -84,9 +84,9 @@ export default function Transactions() {
       )}
 
       {panel.kind === 'form' && panel.editing && display.get().mode !== 'real' && (
-        // The form would show the row's real share count, which hidden figures exist to keep off the screen.
+        // The form would show the row's real share count, which hidden and scaled figures exist to keep off the screen.
         <div className="mb-8">
-          <Notice title="Figures are hidden, so rows cannot be edited" action={<Button size="sm" variant="ghost" onClick={() => setPanel({ kind: 'none' })}>Dismiss</Button>}>
+          <Notice title="Figures are adjusted, so rows cannot be edited" action={<Button size="sm" variant="ghost" onClick={() => setPanel({ kind: 'none' })}>Dismiss</Button>}>
             Choose “As they are” under Settings → Figures to edit this row.
           </Notice>
         </div>
