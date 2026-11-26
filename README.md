@@ -1,6 +1,6 @@
 # Portfolio Tracker
 
-A local, single-user replacement for the Google Sheets stock tracker. It keeps your transactions in a SQLite file, fetches prices and splits from Tiingo, and shows holdings, realized gains, true daily history, returns and allocation at `http://127.0.0.1:3000`.
+A local, single-user tracker for a stock and ETF portfolio. It keeps your transactions in a SQLite file, fetches prices and splits from Tiingo, and shows holdings, realized gains, true daily history, returns and allocation at `http://127.0.0.1:3000`.
 
 Outbound requests send ticker symbols and date ranges to Tiingo, public fund identifiers to Vanguard for ETF holdings, and to Yahoo Finance the ticker of each stock without a sector and of each ETF you hold (for its sector breakdown and expense ratio). Portfolio amounts, share counts, and exposure calculations stay on your machine.
 
@@ -36,18 +36,47 @@ Each ETF you hold also gets a sector breakdown from Yahoo, refreshed weekly. The
 
 Tiingo's free tier allows 50 requests an hour; the app stops at 45. Opening the Overview starts a background refresh when anything is stale: one request for live quotes, then one per ticker for daily history (benchmarks SPY and QQQ first, then tickers you hold, then tickers you have sold). A ticker you have sold is fetched once, through its last sale. With more than ~43 tickers ever traded, the first backfill spans more than an hour. The header shows how many are waiting and when fetching resumes, and history charts shade the incomplete days until then. Pages always render from the database and never wait on Tiingo.
 
-## Import from the sheet
+## Add your transactions
 
-1. In Google Sheets, open the **Transactions** tab, select the whole table **including the header row**, and copy.
-2. In the app, go to **Data → Transactions → Import** and paste. (Or choose a CSV export of that tab.)
-3. Check the preview. Every row must read cleanly; errors name the row number and the problem. Fix those in the sheet and paste again.
-4. Choose **Replace all** (default; your current data is backed up first) or **Append**, and confirm.
+There are three ways to get trades in:
 
-Columns are matched by header name: `Ticker`, `Asset Type`, `Type`, `Shares`, `Split (n to 1)`, `Avg Price`, `Date`, `Account`, and an optional note column. Dates may be `M/D/YYYY` or `YYYY-MM-DD`; numbers may contain `$` and commas.
+1. Add them one at a time on **Data → Transactions**.
+2. Import a spreadsheet or CSV with one row per trade (below).
+3. Import a Schwab or Robinhood export, or save one into the drop folder (see [Import from a broker](#import-from-a-broker)).
 
-**Split rows are not applied.** Splits come from Tiingo. The sheet's split rows are kept aside and compared with Tiingo's on **Data → Health**. If Tiingo has no split within 5 trading days of one, an **Apply this split** button adds it by hand.
+## Import from a spreadsheet or CSV
 
-**Export CSV** (Data → Transactions) writes the same columns, so an export can be re-imported (or pasted back into the sheet).
+Any spreadsheet works: Google Sheets, Excel or Numbers. Put one trade on each row, under a header row with these column names:
+
+| Column | Required | What goes in it |
+| --- | --- | --- |
+| `Ticker` | Yes | The symbol, such as `VOO`. |
+| `Type` | Yes | `Buy`, `Sell` or `Split`. |
+| `Shares` | Yes | Shares bought or sold, as a positive number. Fractions are fine. |
+| `Avg Price` | Yes | The price per share of the trade. |
+| `Date` | Yes | `M/D/YYYY` or `YYYY-MM-DD`. |
+| `Account` | No | Any label, such as `Retirement`. Leave it blank if you have one account. |
+| `Asset Type` | No | `Stock` or `ETF`. A blank is read as `Stock`, and you can change it later on **Data → Securities**. |
+| `Split (n to 1)` | Only on `Split` rows | The ratio, such as `3` for a 3-for-1 split. |
+| `Note` | No | Free text. |
+
+Column order does not matter, header names ignore case, and any other columns are ignored. Numbers may contain `$` and commas. For example:
+
+```csv
+Ticker,Asset Type,Type,Shares,Avg Price,Date,Account
+VOO,ETF,Buy,10,380.25,1/16/2024,Brokerage
+AAPL,Stock,Buy,5,185.10,2/1/2024,Retirement
+AAPL,Stock,Sell,2,210.00,6/3/2024,Retirement
+```
+
+1. Select the whole table **including the header row**, and copy it. (Or save it as a CSV file.)
+2. In the app, go to **Data → Transactions → Import** and paste it, or choose the CSV file.
+3. Check the preview. Every row must read cleanly, and each error names the row number and the problem. Fix those rows and paste again.
+4. Choose **Replace all** (the default; your current data is backed up first) or **Append**, and confirm.
+
+**You don't need to enter splits.** The app gets them from Tiingo. `Split` rows you do include are not applied: they are kept aside and compared with Tiingo's on **Data → Health**. If Tiingo has no split within 5 trading days of one, an **Apply this split** button adds it by hand.
+
+**Export CSV** (Data → Transactions) writes the same columns, so an export can be imported again.
 
 ## Import from a broker
 
@@ -59,13 +88,13 @@ Only ordinary stock/ETF buys and sells are imported. Dividend reinvestment buys 
 
 Broker files are assumed to list newest trades first. Imports reverse same-day file order; the report has no execution timestamps. Check the preview and use the Transactions page's up/down controls if same-day trades need a different order.
 
-Keep broker downloads in `local-notes/`, which is git-ignored, or anywhere outside the repository.
+If you work from a clone of this repository, keep broker downloads outside it, or in the git-ignored `data/` folder.
 
 ### Drop folder
 
 Broker exports can skip the Import page. `npm start` creates `data/inbox/` (git-ignored, like the rest of `data/`; set `PORTFOLIO_INBOX` to use another folder). Inside it, make a folder named after an account and save that account's Schwab JSON or Robinhood activity CSV there, for example `data/inbox/Taxable/activity.csv`. The folder name is the account.
 
-The app notices the file within a few seconds while it is running, or at the next start. It copies the database to `data/backups/`, adds the trades it does not already have (the same matching as the Import page, so dropping an overlapping or repeated export is safe), and moves the file to that account's `imported/` folder. A file with a malformed trade, a file that is not a broker export, or a file left outside an account folder is not imported at all: it stays where it is, and **Data → Drop folder** and a banner on the Overview say why until it is fixed or removed. The same section lists the last files handled. The sheet format is not accepted here, because it has no check against trades already in the app.
+The app notices the file within a few seconds while it is running, or at the next start. It copies the database to `data/backups/`, adds the trades it does not already have (the same matching as the Import page, so dropping an overlapping or repeated export is safe), and moves the file to that account's `imported/` folder. A file with a malformed trade, a file that is not a broker export, or a file left outside an account folder is not imported at all: it stays where it is, and **Data → Drop folder** and a banner on the Overview say why until it is fixed or removed. The same section lists the last files handled. A spreadsheet or CSV in the format above is not accepted here, because that import has no check against trades already in the app.
 
 ## Pages
 
@@ -90,7 +119,7 @@ The top bar has five areas; each area has a row of tabs, and each tab is one pag
 - **Data**
   - **Transactions**: add, edit, delete, reorder same-day rows (order matters for average cost), import, export.
   - **Securities**: name, sector, asset type and provider symbol for each ticker.
-  - **Health**: refresh status and request budget, then a checklist. Each check is one line when it is clear and opens into its table when it is not: tickers with no data (set a provider symbol), the split cross-check, oversells, fund sector breakdowns, dividends not reinvested, trades more than 20% from that day's close, price gaps, and the sheet's own benchmark method as a check figure.
+  - **Health**: refresh status and request budget, then a checklist. Each check is one line when it is clear and opens into its table when it is not: tickers with no data (set a provider symbol), the split cross-check, oversells, fund sector breakdowns, dividends not reinvested, trades more than 20% from that day's close, price gaps, and a simpler mirror-every-trade benchmark as a check figure.
   - **Drop folder**: where it is, files it could not import, and the files it has handled.
 - **Settings** (top right): the cost basis method; whether dividends are reinvested or paid as cash (`?drip=off` on every calculation request); how figures are shown; and the optional password. **Figures** can be shown as they are, hidden (every dollar amount and share count becomes dots; prices, percentages and dates stay) or scaled (every amount multiplied by a number you type), for showing the app to someone else. Once hidden or scaled, the settings page says only that figures are adjusted, never how; choose “As they are” to restore them. The choice stays in the browser. The Outlook is not shown while figures are hidden, and runs in scaled dollars while they are scaled. **Password** is off unless you set one. With one set, every new tab shows a blank page with a single box; the right password opens the app, closing the tab locks it again, and **Lock** in the top bar locks the tab at once. Every `/api` request except the lock status and the unlock itself then needs the tab's unlock token (header `x-unlock`, or `?unlock=` on the CSV export). It keeps someone at your computer from opening the page and reading everything at a glance; it is not security. The password is plain text in `data/password` (git-ignored); forget it and you can read or delete that file.
 - **Ticker detail** (click a ticker in a table): the position, a split-adjusted price chart with buy/sell markers, then tabs for entered transactions, remaining FIFO lots, realized sales, dividends and a sale preview. The position and lots are shown at the range end; event tables cover the selected range. Under average cost, switch to FIFO to inspect individual lots.
@@ -123,7 +152,7 @@ On the Overview, **What moved** lists each holding's dollar gain over the last d
 - **Accounts side by side** appears when more than one account is selected. Each account is replayed independently. Returns are not additive; average-cost basis is computed separately for each account, while the combined view pools basis across selected accounts.
 - **Your benchmark**, below the return chart on Performance → Returns, saves one additional ticker in the local database. It joins the standard benchmarks in the refresh queue and shares the existing request budget. Removing it stops benchmark refreshes (a ticker you hold still refreshes as a holding). Splits and dividends are included. A ticker whose history starts after your trades is omitted from the same-money comparison; choose a later chart range to compare its return line. Invalid or unresolved symbols are shown on Data → Health. Version 2 adds the saved selection table and a flag so a benchmark-only ticker takes its asset type from its first trade or manual edit, with the usual backup before migration.
 
-The cost basis setting (Settings, top right) changes every figure between **FIFO** (the default: lots kept per account and ticker, as brokers report taxes; `?method=` absent or `fifo`) and **Avg cost** (the sheet's method, pooled per ticker across accounts; `?method=average`).
+The cost basis setting (Settings, top right) changes every figure between **FIFO** (the default: lots kept per account and ticker, as brokers report taxes; `?method=` absent or `fifo`) and **Avg cost** (pooled per ticker across accounts; `?method=average`).
 
 ### Underlying ETF exposure
 
@@ -141,19 +170,16 @@ Schema version 4 adds only the fund holdings cache, with the usual automatic bac
 - **Merger or delisting**: enter a **Sell** at the deal price on the closing date. If you received shares of the acquirer, also enter a **Buy** of the acquirer at its price that day for the shares received.
 - Until then, a ticker with no current data is valued at its last stored close (or at cost if there is none) and flagged on every page that shows it.
 
-## Expected differences from the sheet
+## How the numbers are calculated
 
-These are intended. Shares and total cost per ticker match the sheet exactly except where one of these applies.
+These rules apply on every page. If you compare the app with a broker statement or another tracker, these are the places the figures can differ.
 
-1. **Splits the sheet is missing.** The app applies every split Tiingo reports. Example from the sample: the sheet shows TSLA at 4 shares; with the August 2022 3-for-1 the app shows 12 (same total cost, a third of the cost per share).
-2. **Positions under one share.** The sheet only lists holdings with at least 1 share; the app shows any open position.
-3. **Same-day split and trade.** The sheet's result depends on row order. The app always applies a split before any trade dated on its ex-date (a trade on the ex-date is taken to be post-split).
-4. **Realized rows.** The sheet's sort covers only the first 199 sales; the app sorts all of them.
-5. **Benchmark.** SPY and QQQ rather than index levels, as total return (their dividends reinvested on each ex-date). The sheet's "mirror every trade into the index" method can go negative; the app's dollar comparison uses a per-ticker shadow that can't. The sheet's method is still shown on Data health as a check figure.
-6. **Prices.** A different source at a different moment, so equity and gains differ by small amounts.
-7. **History.** The sheet's 60-day chart assumes today's holdings were held all along. The app replays what was actually held each day, so it differs wherever a trade happened in the range.
-8. **Sales before a split.** The sheet shows split-adjusted share counts on sales that predate a split; the app shows shares as traded.
-9. **Oversells.** The sheet doesn't clamp a sale of more shares than held. The app clamps it to the shares held, keeps rendering, and lists it on Overview and Data health.
-10. **Odd split ratios** can leave fractional shares in both.
-11. **Dividends are reinvested** unless Settings says they are paid as cash. The sheet ignores them. By default the app assumes every dividend is reinvested (DRIP): on the ex-date it pays the shares held going into it, and the money buys more of the same ticker at that day's close, in the account that received it. So share counts and cost include the reinvested shares (cost = the amount reinvested), and later dividends are paid on them too. When every share you entered in an account is sold, its reinvested shares are taken to be sold in the same sale. Your broker reinvests on the pay date, a few days to weeks after the ex-date, so its share counts differ slightly. **Don't enter the broker's reinvestment buys as transactions**, or they'll be counted twice. A dividend with no close within a week of its ex-date stays as cash and is listed on Data health.
-12. **Unpriced holdings.** The sheet silently values a ticker it can't price at cost per share; the app does the same but flags it.
+1. **Splits come from market data.** The app applies every split Tiingo reports. Current holdings are split-adjusted, and earlier sales show the shares as traded. In the sample, 4 TSLA shares held before the August 2022 3-for-1 count as 12 afterward, at the same total cost.
+2. **A split comes before any trade on its ex-date.** A trade dated on the ex-date is taken to be post-split, whatever order the rows are in.
+3. **Every open position is shown**, including ones under one share. Odd split ratios can leave fractional shares.
+4. **Benchmarks are SPY and QQQ as total return**, with their dividends reinvested on each ex-date. The dollar comparison gives each position its own SPY shadow, which can't go negative. Data → Health also shows the simpler method of mirroring every trade's dollars into SPY, which can go negative, as a check figure.
+5. **History is replayed day by day** from what was actually held, so a chart reflects every trade in its range.
+6. **Prices** come from Tiingo at the last refresh, so values and gains can differ by small amounts from a broker's.
+7. **Oversells are clamped.** A sale of more shares than were held is reduced to the shares held, and listed on Overview and Data → Health.
+8. **Dividends are reinvested** unless Settings says they are paid as cash. By default the app assumes every dividend is reinvested (DRIP): on the ex-date it pays the shares held going into it, and the money buys more of the same ticker at that day's close, in the account that received it. So share counts and cost include the reinvested shares (cost = the amount reinvested), and later dividends are paid on them too. When every share you entered in an account is sold, its reinvested shares are taken to be sold in the same sale. Your broker reinvests on the pay date, a few days to weeks after the ex-date, so its share counts differ slightly. **Don't enter the broker's reinvestment buys as transactions**, or they'll be counted twice. A dividend with no close within a week of its ex-date stays as cash and is listed on Data health.
+9. **Unpriced holdings** are valued at their last stored close, or at cost if there is none, and flagged on every page that shows them.

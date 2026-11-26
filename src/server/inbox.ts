@@ -167,7 +167,7 @@ export class Inbox {
       return fail(`Could not read the file: ${(error as Error).message}`);
     }
     const parsed = parseForImport(this.q, text, account);
-    if (!parsed.source) return fail('Not a Schwab JSON or Robinhood activity export. Use Transactions → Import for the sheet format');
+    if (!parsed.source) return fail('Not a Schwab JSON or Robinhood activity export. Use Data → Transactions → Import for a spreadsheet or CSV');
     if (parsed.fileErrors.length) return fail(parsed.fileErrors.join('; '));
     if (parsed.errors.length) {
       const first = parsed.errors[0];

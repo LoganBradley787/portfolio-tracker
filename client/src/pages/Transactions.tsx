@@ -120,7 +120,7 @@ export default function Transactions() {
       ) : data.transactions.length === 0 ? (
         panel.kind === 'none' && (
           <Empty title="No transactions yet">
-            Select the Transactions tab in the Google Sheet (header row included), copy, and paste it into Import. Or add trades one at a time.
+            Add trades one at a time, or use Import to paste a spreadsheet table (header row included) or choose a CSV or broker export.
           </Empty>
         )
       ) : (
@@ -388,8 +388,9 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
         </Button>
       </div>
       <p className="mb-3 text-[13px] text-muted">
-        Paste the Transactions tab copied from Google Sheets (header row included), or choose a CSV file. Columns are matched by name: Ticker, Asset Type, Type,
-        Shares, Split (n to 1), Avg Price, Date, Account. Split rows are not applied; splits come from market data. Or choose a Schwab transaction export saved as
+        Paste a table copied from any spreadsheet, header row included, or choose a CSV file. Put one trade on each row. Columns are matched by name: Ticker, Type
+        (Buy or Sell), Shares, Avg Price (per share) and Date are required; Account, Asset Type (Stock or ETF) and Note are optional. Splits come from market data,
+        so you don’t need to enter them. Or choose a Schwab transaction export saved as
         JSON or a Robinhood account activity CSV: buys and sells are added to one account. Dividend reinvestments are skipped because the app reinvests dividends itself.
         Broker files can also be saved into the drop folder and are imported without coming here; Data → Drop folder shows where it is.
       </p>
@@ -418,7 +419,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
       {preview && (
         <div className="mt-4">
           {preview.fileErrors.length > 0 ? (
-            <Notice tone="loss" title={broker ? 'This file can’t be read' : 'This doesn’t look like the Transactions tab'}>
+            <Notice tone="loss" title={broker ? 'This file can’t be read' : 'This doesn’t look like a table of trades'}>
               {preview.fileErrors.join('. ')}.
             </Notice>
           ) : (
@@ -447,7 +448,7 @@ export function ImportPanel({ hasRows, onClose, onImported }: { hasRows: boolean
                 {preview.errors.length > 0 && <span className="text-loss"> · {preview.errors.length} rows with errors</span>}
               </p>
               {preview.errors.length > 0 && (
-                <Notice tone="loss" title={`Fix these rows in the ${broker ? 'file' : 'sheet'} and paste again. Nothing is saved until every row reads cleanly.`}>
+                <Notice tone="loss" title={`Fix these rows in the ${broker ? 'file' : 'spreadsheet'} and paste again. Nothing is saved until every row reads cleanly.`}>
                   <ul className="mt-1 space-y-0.5">
                     {preview.errors.slice(0, 12).map((e) => (
                       <li key={e.row} className="num">

@@ -74,11 +74,11 @@ export default function Overview() {
       <>
         {header}
         <Empty title="No transactions yet">
-          Copy the Transactions tab from the Google Sheet (header row included) and paste it under{' '}
+          Add trades one at a time under{' '}
           <Link to="/data/transactions" className="font-medium text-accent underline-offset-2 hover:underline">
-            Activity
+            Data → Transactions
           </Link>
-          , or add trades one at a time there.
+          , or import a spreadsheet, a CSV or a broker export there.
         </Empty>
       </>
     );

@@ -130,7 +130,7 @@ export function Health() {
         </Check>
         <Check title="Split cross-check" issues={checks[1]} clear={data.splitCheck.length ? 'every imported split matches the provider' : 'no split rows were imported'}>
           <p className="mb-2.5 max-w-prose text-[13px] text-muted">
-            Split rows from the sheet are not applied. Each is compared with the splits reported by the provider. If the provider has nothing within 5 trading days you can apply the sheet’s split by hand.
+            Imported Split rows are not applied. Each is compared with the splits reported by the provider. If the provider has nothing within 5 trading days you can apply the imported split by hand.
           </p>
           {data.splitCheck.length ? <SplitTable rows={data.splitCheck} onChanged={changed} /> : null}
           <p className="mt-4 mb-1 text-[13px] font-medium text-muted">Splits in use ({data.splits.length})</p>
@@ -229,17 +229,17 @@ export function Health() {
             ]}
           />
         </Check>
-        <Check title="Sheet-compatible benchmark" issues={data.sheetMirror?.negative ? 1 : 0} clear="a check figure for the spreadsheet’s own method" always>
+        <Check title="Mirror benchmark" issues={data.sheetMirror?.negative ? 1 : 0} clear="a check figure for the simpler benchmark method" always>
           <p className="mb-2.5 max-w-prose text-[13px] text-muted">
-            The sheet’s “S&amp;P 500 Math”, run on SPY: every trade’s dollars go into or out of the benchmark at that day’s close, under average cost, with no clamp. It is here only so
-            the sheet’s figures can be checked. Performance uses a per-ticker shadow that cannot go negative.
+            The method many spreadsheet trackers use, run on SPY: every trade’s dollars go into or out of the benchmark at that day’s close, under average cost, with no clamp. It is here
+            only so a spreadsheet’s figures can be checked. Performance uses a per-ticker shadow that cannot go negative.
           </p>
           {data.sheetMirror ? (
             <>
               {data.sheetMirror.negative && (
                 <div className="mb-3">
-                  <Notice tone="warn" title="The sheet’s method went negative">
-                    A sale’s proceeds exceeded the benchmark position, so the sheet would show negative units. That is the flaw this method has; Performance does not use it.
+                  <Notice tone="warn" title="The mirror method went negative">
+                    A sale’s proceeds exceeded the benchmark position, so this method shows negative units. That is the flaw this method has; Performance does not use it.
                   </Notice>
                 </div>
               )}
@@ -375,8 +375,8 @@ function SplitTable({ rows, onChanged }: { rows: SplitCheck[]; onChanged: () => 
       rowKey={(s) => s.id}
       columns={[
         { key: 'ticker', label: 'Ticker', render: (s) => <TickerLink ticker={s.ticker} /> },
-        { key: 'date', label: 'Sheet date', render: (s) => <span className="num">{date(s.exDate)}</span> },
-        { key: 'ratio', label: 'Sheet ratio', numeric: true, render: (s) => `${s.ratio}:1` },
+        { key: 'date', label: 'Imported date', render: (s) => <span className="num">{date(s.exDate)}</span> },
+        { key: 'ratio', label: 'Imported ratio', numeric: true, render: (s) => `${s.ratio}:1` },
         { key: 'pdate', label: 'Provider date', render: (s) => <span className="num">{s.providerExDate ? date(s.providerExDate) : '—'}</span>, className: 'hidden sm:table-cell' },
         { key: 'pratio', label: 'Provider ratio', numeric: true, render: (s) => (s.providerRatio ? `${s.providerRatio}:1` : '—'), className: 'hidden sm:table-cell' },
         { key: 'result', label: 'Result', render: (s) => label[s.result] },

@@ -66,7 +66,7 @@ describe('Robinhood import panel', () => {
     setup({ ...preview, fileErrors: ['Malformed CSV quoting at line 4'] });
     const html = markup();
     expect(html).toContain('This file can’t be read');
-    expect(html).not.toContain('This doesn’t look like the Transactions tab');
+    expect(html).not.toContain('This doesn’t look like a table of trades');
   });
 
   it('sends the chosen account with append mode and reports the saved result', async () => {
